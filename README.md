@@ -1,2 +1,2 @@
 # digital_ghost
-EC 521 Project
+Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious External Data Sources
