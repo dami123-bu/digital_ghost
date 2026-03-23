@@ -30,11 +30,12 @@ A vector database (RAG) storing biomedical article chunks. Seeded via a one-time
 
 **Decision needed:** Which vector DB? (ChromaDB, Qdrant, Weaviate, pgvector, ...)
 
-### 2. Two LangChain Agents
+### 2. LangChain Agents
 All reads and writes to the knowledge base go through agents — nothing touches the store directly.
 
 - **Ingest Agent** — given a drug name or PDF, fetches/parses text and adds it to the knowledge base
 - **Query Agent** — given a natural language query, retrieves the top matching documents and produces an LLM synthesis
+- **Attack Agent** — attacks the system, injects malicious data, disrupts function
 
 **Decision needed:** Agent pattern (ReAct, tool-calling, plan-and-execute, ...)?
 
@@ -44,7 +45,7 @@ Used for embeddings and for synthesis responses.
 **Decision needed:** Which LLM and embedding model? (Ollama local, OpenAI, Anthropic, ...)
 
 ### 4. Web Interface
-Single-page app with two panels: one for ingesting documents, one for querying.
+Single-page app with two panels: one for uploading/ingesting documents, one for querying.
 
 **Decision needed:** Frontend approach (plain HTML/JS, React, Streamlit, Gradio, ...)?
 
