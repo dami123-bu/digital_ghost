@@ -1,6 +1,6 @@
 # Digital Ghost
 
-**Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious Data Sources**
+**Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious External Data Sources**
 
 Academic security research project — EC521 Cybersecurity, Boston University, Spring 2026.
 
@@ -34,13 +34,15 @@ Requires API keys for Anthropic or OpenAI set as environment variables (`ANTHROP
 
 ## Attack Surface
 
-# MCP
-# The PDF upload pathway
-# Context Poisoning
+The PDF upload pathway is the primary attack surface. A malicious document injected into the knowledge base can:
+
+- Manipulate LLM responses for all future queries (context poisoning)
+- Override agent behavior via hidden instructions (indirect prompt injection)
+- Persist across sessions until the knowledge base is cleaned
 
 ---
 
-## Architecture for RAG
+## Architecture
 
 ```
 digital_ghost/
