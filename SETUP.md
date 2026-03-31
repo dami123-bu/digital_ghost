@@ -1,5 +1,6 @@
 
-## Setup
+# Setup
+Runs these steps to setup your project.
 
 ```bash
 # Create and activate virtual environment
@@ -12,8 +13,6 @@ pip install -e .
 # Configure git hooks (run once after cloning)
 make setup
 
-# Seed the knowledge base (run once)
-python scripts/setup_kb.py
 
 # Ingest a drug or PDF
 python scripts/ingest.py --drug aspirin
@@ -22,7 +21,7 @@ python scripts/ingest.py --drug aspirin
 python scripts/query.py --query "What are the side effects of aspirin?"
 ```
 
-### Environment Variables
+## Environment Variables
 
 Copy `.env.example` to `.env` and fill in your values:
 
@@ -36,7 +35,7 @@ cp .env.example .env
 
 All other variables have defaults and are documented in `.env.example`.
 
-#### Getting an NCBI API Key
+### Getting an NCBI API Key
 
 1. Go to [https://www.ncbi.nlm.nih.gov/account/](https://www.ncbi.nlm.nih.gov/account/) and create a free NCBI account
 2. After logging in, click your username → **Settings**
@@ -45,7 +44,7 @@ All other variables have defaults and are documented in `.env.example`.
 
 The key is free and raises the rate limit from 3 to 10 requests/second.
 
-### Ollama (local models)
+## Ollama (local models)
 
 To run with local models instead of cloud APIs, install [Ollama](https://ollama.com) and pull the required models:
 
@@ -56,7 +55,7 @@ ollama pull mistral:7b && ollama pull nomic-embed-text
 - `mistral:7b` — local LLM for synthesis and agent reasoning
 - `nomic-embed-text` — local embedding model for ChromaDB
 
-### Docker
+## Docker
 
 Ollama must be running on the host before starting the container.
 
@@ -64,13 +63,8 @@ Ollama must be running on the host before starting the container.
 docker compose up --build
 ```
 
-The app will be available at `http://localhost:8000`. ChromaDB data is persisted to `./data/chroma` via a volume mount.
 
-Set environment variables in a `.env` file before running:
+ChromaDB data is persisted to `./data/chroma` via a volume mount.
 
-```
-NCBI_API_KEY=your_key_here
-OLLAMA_BASE_URL=http://host.docker.internal:11434  # default, change if needed
-```
 
 ---

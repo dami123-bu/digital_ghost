@@ -14,6 +14,12 @@ The goal is to empirically measure how context poisoning and indirect prompt inj
 
 ---
 
+## Setup
+
+IMPORTANT: Follow the steps in [SETUP.md](SETUP.md) exactly the first time you clone this project.
+
+Subsequently, if you want to restart the project, make sure to run Ollama, and the Docker container (Instructions are in [SETUP.md](SETUP.md)).
+
 ## Attack Surface
 
 The PDF upload pathway is the primary attack surface. A malicious document injected into the knowledge base can:
@@ -72,11 +78,11 @@ The `.claude/skills/` directory contains project-specific instructions that guid
 
 | Skill | What it does |
 |-------------|--------------|
-| `architecture` | Best practices for RAG, agentic AI, and MCP server design |
-| `testing` | Guidelines for writing tests with pytest in this project |
-| `attack-spec` | Template for defining new attack vectors in a structured way |
-| `documentation` | Guidelines for writing module/component docs |
-| `changes` | Appends a summary entry to `CHANGES.md` after modifications |
+| `architecture` | Best practices for Python RAG, MCP, and agentic AI application architecture — covers ingestion, retrieval trust boundaries, agent design, and module structure |
+| `testing` | Guidelines for writing tests in the Digital Ghost project |
+| `attack-spec` | Define a new attack vector for the Digital Ghost experiment |
+| `documentation` | Write or update documentation for a module, function, or component |
+| `changes` | Appends an AI-generated summary entry to `CHANGES.md` automatically after each git commit |
 
 If you're not using Claude Code, you can read these files directly — they contain useful context about how the project is structured and what conventions to follow.
 
@@ -85,4 +91,4 @@ If you're not using Claude Code, you can read these files directly — they cont
 ## Further Reading
 
 - [RAG.md](RAG.md) — how the RAG pipeline and agents work
-- [project_team.md](project_team.md) — project overview and design decisions
+- [project.md](project.md) — project overview and design decisions

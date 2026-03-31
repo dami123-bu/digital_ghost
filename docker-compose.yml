@@ -1,8 +1,7 @@
 services:
-  app:
+  setup:
     build: .
-    ports:
-      - "8000:8000"
+    command: python scripts/setup_kb.py
     volumes:
       - ./data/chroma:/app/data/chroma
     environment:
