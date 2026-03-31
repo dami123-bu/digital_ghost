@@ -30,6 +30,34 @@ python main.py
 
 Requires API keys for Anthropic or OpenAI set as environment variables (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`).
 
+### Ollama (local models)
+
+To run with local models instead of cloud APIs, install [Ollama](https://ollama.com) and pull the required models:
+
+```bash
+ollama pull mistral:7b && ollama pull nomic-embed-text
+```
+
+- `mistral:7b` — local LLM for synthesis and agent reasoning
+- `nomic-embed-text` — local embedding model for ChromaDB
+
+### Docker
+
+Ollama must be running on the host before starting the container.
+
+```bash
+docker compose up --build
+```
+
+The app will be available at `http://localhost:8000`. ChromaDB data is persisted to `./data/chroma` via a volume mount.
+
+Set environment variables in a `.env` file before running:
+
+```
+NCBI_API_KEY=your_key_here
+OLLAMA_BASE_URL=http://host.docker.internal:11434  # default, change if needed
+```
+
 ---
 
 ## Attack Surface
