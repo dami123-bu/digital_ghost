@@ -38,14 +38,12 @@ The sanitization step is the critical trust boundary — retrieved text is treat
 
 ## Agent design
 
-Two agents with strict privilege separation:
+Two agents mediate all interactions with the knowledge base:
 
-| Agent | Can do | Cannot do | Tools |
-|-------|--------|-----------|-------|
-| Ingest Agent | Write to ChromaDB | Read from ChromaDB | `fetch_pubmed`, `parse_pdf`, `ingest_document` |
-| Query Agent | Read from ChromaDB | Write to ChromaDB | `retrieve_docs`, `synthesize` |
+- **Ingest agent** (`src/digital_ghost/agents/ingest_agent.py`) — tools: `fetch_pubmed`, `parse_pdf`, `ingest_document`
+- **Query agent** (`src/digital_ghost/agents/query_agent.py`) — tools: `retrieve_docs`, `synthesize`
 
-This prevents a compromised document from both poisoning the KB and exfiltrating data in the same agent.
+Key constraint: retrieved content must be sanitized before being passed to any agent that can take actions. This is the trust boundary that limits indirect prompt injection — raw document text should never reach a tool-calling agent directly.
 
 ---
 
@@ -61,7 +59,7 @@ digital_ghost/
 └── src/digital_ghost/      # Source package (planned)
     ├── ingestion/          # pubmed.py, pdf_parser.py, embedder.py
     ├── rag/                # store.py, retriever.py
-    ├── agents/             # ingest_agent.py, query_agent.py, attack_agent.py
+    ├── agents/             # TBD
     ├── synthesis/          # synthesizer.py
     └── web/                # FastAPI app + templates
 ```

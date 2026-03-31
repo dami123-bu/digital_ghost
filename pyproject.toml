@@ -1,7 +1,7 @@
 [project]
 name = "digital-ghost"
 version = "0.1.0"
-description = "Add your description here"
+description = "Context poisoning and indirect prompt injection measurement in agentic AI systems"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

@@ -37,6 +37,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for full details.
 ```
 digital_ghost/
 ├── config.py               # Central configuration
+├── main.py                 # Entry point (placeholder)
 ├── data/chroma/            # ChromaDB persistent store (local)
 ├── scripts/
 │   ├── setup_kb.py         # Seeds ChromaDB from PubMed
@@ -44,7 +45,7 @@ digital_ghost/
 └── src/digital_ghost/      # Source package (planned)
     ├── ingestion/          # PubMed client, PDF parser, embedder
     ├── rag/                # Vector store interface, retriever
-    ├── agents/             # ingest_agent.py, query_agent.py
+    ├── agents/             # TBD
     ├── synthesis/          # LLM synthesis wrapper
     └── web/                # FastAPI app
 ```
@@ -88,7 +89,7 @@ The `.claude/skills/` directory contains project-specific instructions that guid
 | `testing` | Guidelines for writing tests in the Digital Ghost project |
 | `attack-spec` | Define a new attack vector for the Digital Ghost experiment |
 | `documentation` | Write or update documentation for a module, function, or component |
-| `changes` | Appends an AI-generated summary entry to `CHANGES.md` automatically after each git commit |
+
 
 If you're not using Claude Code, you can read these files directly — they contain useful context about how the project is structured and what conventions to follow.
 

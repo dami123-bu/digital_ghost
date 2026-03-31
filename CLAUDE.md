@@ -13,7 +13,7 @@ agentic AI systems.
 - **Language**: Python 3.12
 - **Agent Framework**: LangChain (ReAct agent pattern)
 - **Vector DB**: ChromaDB (local, no server)
-- **LLM APIs**: Anthropic Claude and/or OpenAI GPT-4o
+- **LLM**: Ollama (`mistral:7b` for synthesis, `nomic-embed-text` for embeddings)
 - **Database**: SQLite (mock LIMS system)
 
 ## Architecture

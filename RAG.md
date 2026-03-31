@@ -1,6 +1,6 @@
 # Digital Ghost — RAG Application Architecture
 
-A pharmaceutical research RAG application for EC521 Cybersecurity (BU Spring 2026). The application is the **target system** for security research: we build it, then measure and defend against context poisoning and indirect prompt injection attacks.
+This is the RAG component for Digital Ghost
 
 The app allows users to query a biomedical knowledge base (PubMed abstracts) using natural language, upload their own PDFs into the knowledge base, and receive LLM-synthesized answers alongside the source documents.
 
@@ -14,7 +14,7 @@ The app allows users to query a biomedical knowledge base (PubMed abstracts) usi
 | Vector DB | ChromaDB (local persistent) | Zero-config, Python-native, LangChain integration |
 | LLM (synthesis) | Ollama / `mistral:7b` | Local — no data leaves machine, critical for security research |
 | Embeddings | Ollama / `nomic-embed-text` | Dedicated embedding model |
-| Agent Framework | LangChain (ReAct pattern) | Two agents: ingest and query |
+| Agent Framework | LangChain (ReAct pattern) | Agent design TBD |
 | PDF parsing | pypdf | Attack surface for malicious document injection |
 | PubMed API | NCBI E-utilities (httpx) | Free-tier; abstracts only |
 
@@ -38,10 +38,7 @@ digital_ghost/
     ├── rag/
     │   ├── store.py             # ChromaDB collection init and query interface
     │   └── retriever.py         # LangChain retriever (returns top-K docs)
-    ├── agents/
-    │   ├── ingest_agent.py      # ReAct agent — tools: fetch_pubmed, parse_pdf, ingest_document
-    │   ├── query_agent.py       # ReAct agent — tools: retrieve_docs, synthesize
-    │   └── attack_agent.py      # Adversarial agent for experiments
+    ├── agents/                  # Agent design TBD
     ├── synthesis/
     │   └── synthesizer.py       # query + retrieved docs → LLM synthesis via Ollama
     └── web/
@@ -55,24 +52,7 @@ digital_ghost/
 
 LangChain ReAct agents mediate all interactions with the knowledge base. No code outside the agents writes to or reads from ChromaDB directly.
 
-### Ingest Agent (`agents/ingest_agent.py`)
-
-Responsible for adding documents to the knowledge base. Write-only — no KB reads.
-
-**Tools:**
-- `fetch_pubmed(drug_name, n)` — fetches top-N abstracts from PubMed E-utilities
-- `parse_pdf(file_bytes)` — extracts text from a PDF
-- `ingest_document(text, metadata)` — chunks, embeds, and upserts to ChromaDB
-
-### Query Agent (`agents/query_agent.py`)
-
-Responsible for retrieving relevant documents and producing a synthesized answer. Read-only — no KB writes.
-
-**Tools:**
-- `retrieve_docs(query, k=20)` — queries ChromaDB, returns top-K chunks with metadata and scores
-- `synthesize(query, docs)` — passes query + sanitized docs to Ollama LLM, returns synthesis text
-
-The agent never receives raw document text — chunks are sanitized before being passed to synthesis. This is the trust boundary that limits indirect prompt injection.
+Two agents mediate all interactions: an **ingest agent** (tools: `fetch_pubmed`, `parse_pdf`, `ingest_document`) and a **query agent** (tools: `retrieve_docs`, `synthesize`). Key design constraint: retrieved content must be sanitized before being passed to any agent that can take actions — this is the trust boundary that limits indirect prompt injection.
 
 ---
 
@@ -92,7 +72,7 @@ scripts/drugs.txt
 
 ```
 scripts/ingest.py --drug <name> [--pdf <file>]
-  → ingest_agent.py (ReAct loop)
+  → agent(s) (ReAct loop)
       → fetch_pubmed(drug_name)
       → parse_pdf(file_bytes)
       → ingest_document(text, metadata)
@@ -103,7 +83,7 @@ scripts/ingest.py --drug <name> [--pdf <file>]
 
 ```
 scripts/query.py --query "<natural language query>"
-  → query_agent.py (ReAct loop)
+  → agent(s) (ReAct loop)
       → retrieve_docs(query, k=20)  → ChromaDB (similarity threshold >= 0.5)
       → sanitize chunks             ← trust boundary
       → synthesize(query, docs)     → Ollama mistral:7b
