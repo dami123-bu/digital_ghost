@@ -1,79 +1,111 @@
-# Digital Ghost — Project Overview
+# Digital Ghost — RAG Application Architecture
 
-## What We're Building
+A pharmaceutical research RAG application for EC521 Cybersecurity (BU Spring 2026). The application is the **target system** for security research: we build it, then measure and defend against context poisoning and indirect prompt injection attacks.
 
-A web application that lets a researcher ask plain-English questions about pharmaceutical drugs and get back relevant scientific literature plus an AI-written summary. It serves as the **target system** for our security research — we build it, then attack it (context poisoning, prompt injection) and measure defenses.
-
-## RAG and agents
-### Background: What is a RAG application?
-
-LLMs (like ChatGPT) are trained on general internet data and have a knowledge cutoff. They don't know about proprietary documents, recent papers, or domain-specific databases. **Retrieval-Augmented Generation (RAG)** solves this by giving the LLM a private search engine at query time:
-
-1. **Offline:** Documents are split into chunks, converted to numerical vectors (embeddings) that capture semantic meaning, and stored in a vector database.
-2. **At query time:** The user's question is converted to a vector. The database finds the chunks whose vectors are closest — i.e., most semantically similar — and hands those chunks to the LLM as context.
-3. **The LLM answers** using those chunks as its source material, rather than guessing from training data.
-
-This is why RAG systems are widely used in enterprise and research settings — and why they are an interesting attack surface. Whoever controls what goes into the knowledge base controls what the LLM "knows."
-
-### What the App Does
-
-- **Setup:** fetch the top 50 PubMed abstracts for each drug in our list and embed them into the knowledge base
-- **Ingest:** user submits a drug name or uploads PDFs → added to the knowledge base
-- **Query:** user asks a natural language question → app returns the 20 best-matching articles as a ZIP file and an LLM-written synthesis in a text box
+The app allows users to query a biomedical knowledge base (PubMed abstracts) using natural language, upload their own PDFs into the knowledge base, and receive LLM-synthesized answers alongside the source documents.
 
 ---
 
-## Core Components
+## Technology Stack
 
-### 1. Knowledge Base
-A vector database (RAG) storing biomedical article chunks. Seeded via a one-time setup script (top 50 PubMed abstracts per drug). Users can also add documents at runtime.
-
-**Decision needed:** Which vector DB? (ChromaDB, Qdrant, Weaviate, pgvector, ...)
-
-### 2. LangChain Agents
-All reads and writes to the knowledge base go through agents — nothing touches the store directly.
-
-- **Ingest Agent** — given a drug name or PDF, fetches/parses text and adds it to the knowledge base
-- **Query Agent** — given a natural language query, retrieves the top matching documents and produces an LLM synthesis
-- **Attack Agent** — attacks the system, injects malicious data, disrupts function
-
-**Decision needed:** Agent pattern (ReAct, tool-calling, plan-and-execute, ...)?
-
-### 3. LLM
-Used for embeddings and for synthesis responses.
-
-**Decision needed:** Which LLM and embedding model? (Ollama local, OpenAI, Anthropic, ...)
-
-### 4. Web Interface
-Single-page app with two panels: one for uploading/ingesting documents, one for querying.
-
-**Decision needed:** Frontend approach (plain HTML/JS, React, Streamlit, Gradio, ...)?
+| Layer | Technology | Rationale |
+|-------|-----------|-----------|
+| Language | Python 3.12 | |
+| Vector DB | ChromaDB (local persistent) | Zero-config, Python-native, LangChain integration |
+| LLM (synthesis) | Ollama / `mistral:7b` | Local — no data leaves machine, critical for security research |
+| Embeddings | Ollama / `nomic-embed-text` | Dedicated embedding model |
+| Agent Framework | LangChain (ReAct pattern) | Two agents: ingest and query |
+| PDF parsing | pypdf | Attack surface for malicious document injection |
+| PubMed API | NCBI E-utilities (httpx) | Free-tier; abstracts only |
 
 ---
 
-## Module Sketch
+## File Layout
 
 ```
 digital_ghost/
-├── config.py
-├── data/                   # ChromaDB storage, drug list
-├── ingestion/              # PubMed client, PDF parser, embedder
-├── rag/                    # Vector store interface, retriever
-├── agents/                 # ingest_agent.py, query_agent.py
-├── synthesis/              # LLM synthesis wrapper
-├── web/                    # FastAPI app, templates
-└── scripts/                # setup_kb.py (one-time seed)
+├── config.py                   # Ollama URLs, model names, ChromaDB path, PubMed settings
+├── scripts/
+│   ├── setup_kb.py             # One-time seed: drugs.txt → PubMed → ChromaDB
+│   └── drugs.txt               # List of drug names (one per line)
+├── data/
+│   └── chroma/                 # ChromaDB persistent storage
+└── src/digital_ghost/          # Source package (planned)
+    ├── ingestion/
+    │   ├── pubmed.py            # PubMed E-utilities client
+    │   ├── pdf_parser.py        # Extract text from PDFs (pypdf)
+    │   └── embedder.py          # Chunk text, embed via Ollama, upsert to ChromaDB
+    ├── rag/
+    │   ├── store.py             # ChromaDB collection init and query interface
+    │   └── retriever.py         # LangChain retriever (returns top-K docs)
+    ├── agents/
+    │   ├── ingest_agent.py      # ReAct agent — tools: fetch_pubmed, parse_pdf, ingest_document
+    │   ├── query_agent.py       # ReAct agent — tools: retrieve_docs, synthesize
+    │   └── attack_agent.py      # Adversarial agent for experiments
+    ├── synthesis/
+    │   └── synthesizer.py       # query + retrieved docs → LLM synthesis via Ollama
+    └── web/
+        ├── app.py               # FastAPI application
+        └── templates/index.html
 ```
 
 ---
 
-## Open Decisions
+## Agents
 
-| # | Question |
-|---|----------|
-| 1 | Vector DB choice |
-| 2 | LLM and embedding model (local vs. API) |
-| 3 | Agent reasoning pattern |
-| 4 | Frontend framework |
-| 5 | PubMed article depth (abstracts only vs. full-text via PMC) |
-| 6 | LLM synthesis delivery (streaming vs. batch) |
+LangChain ReAct agents mediate all interactions with the knowledge base. No code outside the agents writes to or reads from ChromaDB directly.
+
+### Ingest Agent (`agents/ingest_agent.py`)
+
+Responsible for adding documents to the knowledge base. Write-only — no KB reads.
+
+**Tools:**
+- `fetch_pubmed(drug_name, n)` — fetches top-N abstracts from PubMed E-utilities
+- `parse_pdf(file_bytes)` — extracts text from a PDF
+- `ingest_document(text, metadata)` — chunks, embeds, and upserts to ChromaDB
+
+### Query Agent (`agents/query_agent.py`)
+
+Responsible for retrieving relevant documents and producing a synthesized answer. Read-only — no KB writes.
+
+**Tools:**
+- `retrieve_docs(query, k=20)` — queries ChromaDB, returns top-K chunks with metadata and scores
+- `synthesize(query, docs)` — passes query + sanitized docs to Ollama LLM, returns synthesis text
+
+The agent never receives raw document text — chunks are sanitized before being passed to synthesis. This is the trust boundary that limits indirect prompt injection.
+
+---
+
+## Data Flow
+
+### Setup (run once)
+
+```
+scripts/drugs.txt
+  → pubmed.py (E-utilities, top-N abstracts per drug)
+  → embedder.py (chunk → embed via nomic-embed-text → upsert ChromaDB)
+```
+
+`scripts/setup_kb.py` implements this directly. It reads `scripts/drugs.txt`, fetches abstracts from PubMed, embeds them via `nomic-embed-text` through Ollama, and upserts into the `pubmed` collection in ChromaDB. Idempotent — skips if collection already populated.
+
+### Ingest (planned)
+
+```
+scripts/ingest.py --drug <name> [--pdf <file>]
+  → ingest_agent.py (ReAct loop)
+      → fetch_pubmed(drug_name)
+      → parse_pdf(file_bytes)
+      → ingest_document(text, metadata)
+  → ChromaDB
+```
+
+### Query (planned)
+
+```
+scripts/query.py --query "<natural language query>"
+  → query_agent.py (ReAct loop)
+      → retrieve_docs(query, k=20)  → ChromaDB (similarity threshold >= 0.5)
+      → sanitize chunks             ← trust boundary
+      → synthesize(query, docs)     → Ollama mistral:7b
+  → stdout: ranked articles + synthesis text
+```

@@ -15,15 +15,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
-## 2. Git Hooks
-
-```bash
-make setup
-```
-
-> **Windows:** `make` is not built in. Install it via `winget install GnuWin32.Make` or use Git Bash.
-
-## 3. Environment Variables
+## 2. Environment Variables
 
 Copy `.env.example` to `.env` and fill in your values:
 
@@ -46,7 +38,7 @@ All other variables have defaults and are documented in `.env.example`.
 
 The key is free and raises the rate limit from 3 to 10 requests/second.
 
-## 4. Ollama
+## 3. Ollama
 
 Install [Ollama](https://ollama.com) then pull the required models:
 
@@ -57,7 +49,7 @@ ollama pull mistral:7b && ollama pull nomic-embed-text
 - `mistral:7b` — local LLM for synthesis and agent reasoning
 - `nomic-embed-text` — local embedding model for ChromaDB
 
-## 5. Seed the Knowledge Base
+## 4. Seed the Knowledge Base
 
 ```bash
 python scripts/setup_kb.py

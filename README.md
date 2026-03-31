@@ -32,23 +32,29 @@ The PDF upload pathway is the primary attack surface. A malicious document injec
 
 ## Architecture
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for full details.
+
 ```
 digital_ghost/
-├── config.py
-├── data/                   # ChromaDB storage, drug list
-├── ingestion/              # PubMed client, PDF parser, embedder
-├── rag/                    # Vector store interface, retriever
-├── agents/                 # ingest_agent.py, query_agent.py
-├── synthesis/              # LLM synthesis wrapper
-└── scripts/                # setup_kb.py, ingest.py, query.py
+├── config.py               # Central configuration
+├── data/chroma/            # ChromaDB persistent store (local)
+├── scripts/
+│   ├── setup_kb.py         # Seeds ChromaDB from PubMed
+│   └── drugs.txt           # 10 pharmaceutical compounds
+└── src/digital_ghost/      # Source package (planned)
+    ├── ingestion/          # PubMed client, PDF parser, embedder
+    ├── rag/                # Vector store interface, retriever
+    ├── agents/             # ingest_agent.py, query_agent.py
+    ├── synthesis/          # LLM synthesis wrapper
+    └── web/                # FastAPI app
 ```
 
 **Stack:**
 - Python 3.12
 - LangChain (ReAct agent pattern)
-- ChromaDB (local vector store)
-- Ollama (local LLM + embeddings)
-- SQLite (mock LIMS)
+- ChromaDB (local persistent vector store)
+- Ollama (local LLM: `mistral:7b`, embeddings: `nomic-embed-text`)
+- SQLite (mock LIMS, planned)
 
 ---
 
@@ -90,5 +96,5 @@ If you're not using Claude Code, you can read these files directly — they cont
 
 ## Further Reading
 
+- [ARCHITECTURE.md](ARCHITECTURE.md) — system design, data flow, agent trust model, attack surfaces
 - [RAG.md](RAG.md) — how the RAG pipeline and agents work
-- [project.md](project.md) — project overview and design decisions

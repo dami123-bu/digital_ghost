@@ -23,9 +23,7 @@ OLLAMA_EMBED_MODEL: str = os.environ.get("OLLAMA_EMBED_MODEL", "nomic-embed-text
 
 # --- ChromaDB ---
 
-CHROMA_COLLECTION_NAME: str = "digital_ghost"
-CHROMA_HOST:str = "localhost"
-CHROMA_PORT:int = 8000
+CHROMA_COLLECTION_PUBMED: str = "pubmed"
 
 # --- PubMed / NCBI ---
 

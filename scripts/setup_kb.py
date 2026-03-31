@@ -3,7 +3,7 @@ setup_kb.py
 
 One-time script to seed the ChromaDB knowledge base from PubMed.
 Reads drug names from drugs.txt (one per line), fetches the top N abstracts
-per drug via NCBI E-utilities, and upserts them into the 'pubmed' collection.
+per drug via NCBI E-utilities, and upserts them into the configured collection.
 """
 
 import sys
@@ -14,9 +14,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import httpx
 import chromadb
-from config import CHROMA_DIR, NCBI_API_KEY, PUBMED_MAX_RESULTS
+from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
+from config import CHROMA_DIR, CHROMA_COLLECTION_PUBMED, NCBI_API_KEY, PUBMED_MAX_RESULTS, OLLAMA_BASE_URL, OLLAMA_EMBED_MODEL
 
-COLLECTION_NAME = "pubmed"
 DRUGS_FILE = Path(__file__).parent / "drugs.txt"
 ARTICLES_PER_DRUG = 10
 NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -74,13 +74,18 @@ def main() -> None:
 
     CHROMA_DIR.mkdir(parents=True, exist_ok=True)
     client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+    embed_fn = OllamaEmbeddingFunction(
+        url=f"{OLLAMA_BASE_URL}/api/embeddings",
+        model_name=OLLAMA_EMBED_MODEL,
+    )
     collection = client.get_or_create_collection(
-        name=COLLECTION_NAME,
+        name=CHROMA_COLLECTION_PUBMED,
+        embedding_function=embed_fn,
         metadata={"hnsw:space": "cosine"},
     )
 
     if collection.count() > 0:
-        print(f"Collection '{COLLECTION_NAME}' already has {collection.count()} documents. Skipping setup.")
+        print(f"Collection '{CHROMA_COLLECTION_PUBMED}' already has {collection.count()} documents. Skipping setup.")
         sys.exit(0)
 
     total = 0
@@ -106,7 +111,7 @@ def main() -> None:
         # Respect rate limit: 3 req/s without key, 10 req/s with
         time.sleep(0.15 if NCBI_API_KEY else 0.4)
 
-    print(f"\nDone. {total} total articles in '{COLLECTION_NAME}' collection.")
+    print(f"\nDone. {total} total articles in '{CHROMA_COLLECTION_PUBMED}' collection.")
     print(f"Data directory: {CHROMA_DIR}")
 
 
