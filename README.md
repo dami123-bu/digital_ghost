@@ -24,8 +24,14 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -e .
 
-# Run
-python main.py
+# Seed the knowledge base (run once)
+python scripts/setup_kb.py
+
+# Ingest a drug or PDF
+python scripts/ingest.py --drug aspirin
+
+# Query
+python scripts/query.py --query "What are the side effects of aspirin?"
 ```
 
 ### Environment Variables
@@ -101,15 +107,14 @@ digital_ghost/
 ├── rag/                    # Vector store interface, retriever
 ├── agents/                 # ingest_agent.py, query_agent.py
 ├── synthesis/              # LLM synthesis wrapper
-├── web/                    # FastAPI app, templates
-└── scripts/                # setup_kb.py (one-time seed)
+└── scripts/                # setup_kb.py, ingest.py, query.py
 ```
 
 **Stack:**
 - Python 3.12
 - LangChain (ReAct agent pattern)
 - ChromaDB (local vector store)
-- Anthropic Claude / OpenAI GPT-4o
+- Ollama (local LLM + embeddings)
 - SQLite (mock LIMS)
 
 ---
