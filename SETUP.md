@@ -1,32 +1,34 @@
 
 # Setup
-Runs these steps to setup your project.
+Run these steps in order the first time you clone this project.
+
+## 1. Python 3.12
 
 ```bash
-# Create and activate virtual environment
-python -m venv .venv
+# macOS
+brew install python@3.12
+# Windows: download from https://www.python.org/downloads/ or: winget install Python.Python.3.12
+
+python3.12 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# Install dependencies
 pip install -e .
-
-# Configure git hooks (run once after cloning)
-make setup
-
-
-# Ingest a drug or PDF
-python scripts/ingest.py --drug aspirin
-
-# Query
-python scripts/query.py --query "What are the side effects of aspirin?"
 ```
 
-## Environment Variables
+## 2. Git Hooks
+
+```bash
+make setup
+```
+
+> **Windows:** `make` is not built in. Install it via `winget install GnuWin32.Make` or use Git Bash.
+
+## 3. Environment Variables
 
 Copy `.env.example` to `.env` and fill in your values:
 
 ```bash
-cp .env.example .env
+cp .env.example .env  # Windows: copy .env.example .env
 ```
 
 | Variable | Description |
@@ -44,9 +46,9 @@ All other variables have defaults and are documented in `.env.example`.
 
 The key is free and raises the rate limit from 3 to 10 requests/second.
 
-## Ollama (local models)
+## 4. Ollama
 
-To run with local models instead of cloud APIs, install [Ollama](https://ollama.com) and pull the required models:
+Install [Ollama](https://ollama.com) then pull the required models:
 
 ```bash
 ollama pull mistral:7b && ollama pull nomic-embed-text
@@ -55,16 +57,10 @@ ollama pull mistral:7b && ollama pull nomic-embed-text
 - `mistral:7b` — local LLM for synthesis and agent reasoning
 - `nomic-embed-text` — local embedding model for ChromaDB
 
-## Docker
-
-Ollama must be running on the host before starting the container.
+## 5. Seed the Knowledge Base
 
 ```bash
-docker compose up --build
+python scripts/setup_kb.py
 ```
-
-
-ChromaDB data is persisted to `./data/chroma` via a volume mount.
-
 
 ---

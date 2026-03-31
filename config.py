@@ -24,6 +24,8 @@ OLLAMA_EMBED_MODEL: str = os.environ.get("OLLAMA_EMBED_MODEL", "nomic-embed-text
 # --- ChromaDB ---
 
 CHROMA_COLLECTION_NAME: str = "digital_ghost"
+CHROMA_HOST:str = "localhost"
+CHROMA_PORT:int = 8000
 
 # --- PubMed / NCBI ---
 
@@ -34,3 +36,5 @@ PUBMED_MAX_RESULTS: int = int(os.environ.get("PUBMED_MAX_RESULTS", "50"))
 
 RETRIEVER_TOP_K: int = int(os.environ.get("RETRIEVER_TOP_K", "20"))
 SIMILARITY_THRESHOLD: float = float(os.environ.get("SIMILARITY_THRESHOLD", "0.5"))
+
+

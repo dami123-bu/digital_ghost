@@ -18,7 +18,7 @@ The goal is to empirically measure how context poisoning and indirect prompt inj
 
 IMPORTANT: Follow the steps in [SETUP.md](SETUP.md) exactly the first time you clone this project.
 
-Subsequently, if you want to restart the project, make sure to run Ollama, and the Docker container (Instructions are in [SETUP.md](SETUP.md)).
+Subsequently, make sure Ollama is running before executing any scripts.
 
 ## Attack Surface
 

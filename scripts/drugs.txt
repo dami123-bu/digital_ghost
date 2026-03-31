@@ -1,0 +1,11 @@
+imatinib
+metformin
+doxorubicin
+rituximab
+pembrolizumab
+tamoxifen
+cisplatin
+trastuzumab
+remdesivir
+osimertinib
+
