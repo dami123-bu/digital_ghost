@@ -24,6 +24,9 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -e .
 
+# Configure git hooks (run once after cloning)
+make setup
+
 # Seed the knowledge base (run once)
 python scripts/setup_kb.py
 

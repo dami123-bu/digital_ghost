@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CHANGES_FILE="$(git rev-parse --show-toplevel)/CHANGES.md"
+DATE=$(date +%Y-%m-%d)
+
+DIFF=$(git diff HEAD~1 HEAD 2>/dev/null || git show HEAD --stat)
+
+SUMMARY=$(echo "$DIFF" | claude -p "Summarize these git changes in a single concise line (no date, no bullet points, just the summary text):" 2>/dev/null)
+
+if [ -n "$SUMMARY" ]; then
+  echo "${DATE}: ${SUMMARY}" >> "$CHANGES_FILE"
+fi
