@@ -28,7 +28,28 @@ pip install -e .
 python main.py
 ```
 
-Requires API keys for Anthropic or OpenAI set as environment variables (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`).
+### Environment Variables
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+|----------|-------------|
+| `NCBI_API_KEY` | PubMed E-utilities key. Without it you're rate-limited to 3 req/s — the setup script will work but slowly. |
+
+All other variables have defaults and are documented in `.env.example`.
+
+#### Getting an NCBI API Key
+
+1. Go to [https://www.ncbi.nlm.nih.gov/account/](https://www.ncbi.nlm.nih.gov/account/) and create a free NCBI account
+2. After logging in, click your username → **Settings**
+3. Scroll to **API Key Management** and click **Create an API Key**
+4. Copy the key into your `.env` file as `NCBI_API_KEY=your_key_here`
+
+The key is free and raises the rate limit from 3 to 10 requests/second.
 
 ### Ollama (local models)
 
