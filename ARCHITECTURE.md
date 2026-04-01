@@ -4,23 +4,53 @@ Digital Ghost builds a pharmaceutical research assistant as a **target system**,
 
 ---
 
-## Stack
+## Technology Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Language | Python 3.12 |
-| Agent framework | LangChain (ReAct) |
-| Vector store | ChromaDB (local persistent) |
-| LLM | Ollama / `mistral:7b` |
-| Embeddings | Ollama / `nomic-embed-text` |
-| Web interface | FastAPI (planned) |
-| Mock LIMS | SQLite (planned) |
+| Layer                  | Technology                  |
+|------------------------|-----------------------------|
+| Language               | Python 3.12                 |
+| Agent framework        | LangChain                   |
+| Vector store           | ChromaDB (local persistent) |
+| LLM                    | Ollama / `mistral:7b`       |
+| Embeddings             | Ollama / `nomic-embed-text` |
+| Web interface          | TBD                         |
+| OpenClaw               | TBD                         |
+| Attack Agent Framework | LangChain                   |
+
 
 ---
 
+## Directory structure
+
+```
+digital_ghost/
+├── config.py                   # Ollama URLs, model names, ChromaDB path, PubMed settings
+├── scripts/
+│   ├── setup_kb.py             # One-time seed: drugs.txt → PubMed → ChromaDB
+│   └── drugs.txt               # List of drug names (one per line)
+├── data/
+│   └── chroma/                 # ChromaDB persistent storage
+└── src/digital_ghost/          # Source package (planned)
+    ├── ingestion/
+    │   ├── pubmed.py            # PubMed E-utilities client
+    │   ├── pdf_parser.py        # Extract text from PDFs (pypdf)
+    │   └── embedder.py          # Chunk text, embed via Ollama, upsert to ChromaDB
+    ├── rag/
+    │   ├── store.py             # ChromaDB collection init and query interface
+    │   └── retriever.py         # LangChain retriever (returns top-K docs)
+    ├── agents/                  # Agent design TBD
+    ├── synthesis/
+    │   └── synthesizer.py       # query + retrieved docs → LLM synthesis via Ollama
+    └── web/
+        ├── app.py               # FastAPI application
+        └── templates/index.html
+```
+---
+
+
 ## How it works
 
-**Ingestion (offline)**
+**Database Seeding(offline)**
 
 ```
 drugs.txt → PubMed (NCBI) → parse abstracts → embed (nomic-embed-text) → ChromaDB
@@ -32,53 +62,41 @@ drugs.txt → PubMed (NCBI) → parse abstracts → embed (nomic-embed-text) →
 User question → embed → ChromaDB similarity search → sanitize → mistral:7b → response
 ```
 
-The sanitization step is the critical trust boundary — retrieved text is treated as untrusted input, never passed raw to the LLM.
-
 ---
 
 ## Agent design
 
-Two agents mediate all interactions with the knowledge base:
-
-- **Ingest agent** (`src/digital_ghost/agents/ingest_agent.py`) — tools: `fetch_pubmed`, `parse_pdf`, `ingest_document`
-- **Query agent** (`src/digital_ghost/agents/query_agent.py`) — tools: `retrieve_docs`, `synthesize`
-
-Key constraint: retrieved content must be sanitized before being passed to any agent that can take actions. This is the trust boundary that limits indirect prompt injection — raw document text should never reach a tool-calling agent directly.
+Agents mediate all interactions with the knowledge base. Multi-turn needed.
+TBD how many agents and exact functionality
+suggested tools: 
+- `fetch_pubmed`, `parse_pdf`, `ingest_document` , `retrieve_docs`, `synthesize`
 
 ---
 
-## Directory structure
+## OpenClaw
 
-```
-digital_ghost/
-├── config.py               # All configuration (env vars + constants)
-├── data/chroma/            # ChromaDB persistent store
-├── scripts/
-│   ├── setup_kb.py         # Seeds ChromaDB from PubMed (working)
-│   └── drugs.txt           # 10 test compounds
-└── src/digital_ghost/      # Source package (planned)
-    ├── ingestion/          # pubmed.py, pdf_parser.py, embedder.py
-    ├── rag/                # store.py, retriever.py
-    ├── agents/             # TBD
-    ├── synthesis/          # synthesizer.py
-    └── web/                # FastAPI app + templates
-```
-
-Only `config.py` and `scripts/setup_kb.py` contain working code. Everything under `src/` is planned.
+TBD
 
 ---
 
-## Security research layer
-
-The project deliberately exposes attack surfaces for measurement.
-
-**Attack surfaces**
+## Attack Surfaces
 
 | Vector | Entry point | Effect |
 |--------|------------|--------|
 | Malicious PDF upload | `parse_pdf` tool | Adversarial text injected into ChromaDB |
 | RAG context poisoning | Poisoned embeddings | LLM output manipulated for all future queries |
 | Tool-use manipulation | Document content | Agent tool calls hijacked via hidden instructions |
+
+TBD : agemts
+
+---
+
+## Attack Mechanism
+
+Could include agents that attack the surfaces. Self- teaching - they learn better mechanisms with time.
+
+---
+
 
 **Defenses measured**
 

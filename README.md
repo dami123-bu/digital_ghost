@@ -20,54 +20,6 @@ IMPORTANT: Follow the steps in [SETUP.md](SETUP.md) exactly the first time you c
 
 Subsequently, make sure Ollama is running before executing any scripts.
 
-## Attack Surface
-
-The PDF upload pathway is the primary attack surface. A malicious document injected into the knowledge base can:
-
-- Manipulate LLM responses for all future queries (context poisoning)
-- Override agent behavior via hidden instructions (indirect prompt injection)
-- Persist across sessions until the knowledge base is cleaned
-
----
-
-## Architecture
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for full details.
-
-```
-digital_ghost/
-├── config.py               # Central configuration
-├── main.py                 # Entry point (placeholder)
-├── data/chroma/            # ChromaDB persistent store (local)
-├── scripts/
-│   ├── setup_kb.py         # Seeds ChromaDB from PubMed
-│   └── drugs.txt           # 10 pharmaceutical compounds
-└── src/digital_ghost/      # Source package (planned)
-    ├── ingestion/          # PubMed client, PDF parser, embedder
-    ├── rag/                # Vector store interface, retriever
-    ├── agents/             # TBD
-    ├── synthesis/          # LLM synthesis wrapper
-    └── web/                # FastAPI app
-```
-
-**Stack:**
-- Python 3.12
-- LangChain (ReAct agent pattern)
-- ChromaDB (local persistent vector store)
-- Ollama (local LLM: `mistral:7b`, embeddings: `nomic-embed-text`)
-- SQLite (mock LIMS, planned)
-
----
-
-## Key Metrics
-
-| Metric | Description |
-|--------|-------------|
-| ASR (Attack Success Rate) | Percentage of successful manipulations |
-| Detection Rate | False positives/negatives on defense systems |
-| Latency Overhead | Performance cost of defenses |
-| Persistence Duration | How long poisoned context affects future queries |
-
 ---
 
 ## Testing Methodology
@@ -95,7 +47,7 @@ If you're not using Claude Code, you can read these files directly — they cont
 
 ---
 
-## Further Reading
+## Read the following for more details
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — system design, data flow, agent trust model, attack surfaces
 - [RAG.md](RAG.md) — how the RAG pipeline and agents work
