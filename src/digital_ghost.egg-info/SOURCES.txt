@@ -1,0 +1,8 @@
+LICENSE
+README.md
+pyproject.toml
+src/digital_ghost.egg-info/PKG-INFO
+src/digital_ghost.egg-info/SOURCES.txt
+src/digital_ghost.egg-info/dependency_links.txt
+src/digital_ghost.egg-info/requires.txt
+src/digital_ghost.egg-info/top_level.txt
