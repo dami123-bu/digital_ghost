@@ -3,8 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-*.egg-info/
-*.egg
+#*.egg-info/
 dist/
 build/
 .python-version
@@ -28,7 +27,7 @@ env/
 
 # ChromaDB local data
 chroma_db/
-#data/chroma/
+data/chroma/
 *.chroma
 
 # SQLite
