@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Digital Ghost** is an academic security research project (EC521 Cybersecurity, BU Spring 2026) 
+**pharma_help** is an academic security research project (EC521 Cybersecurity, BU Spring 2026) 
 that measures and defends against context poisoning and indirect prompt injection attacks in 
 agentic AI systems.
 

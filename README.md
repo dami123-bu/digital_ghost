@@ -1,4 +1,4 @@
-# Digital Ghost
+# pharma_help
 
 **Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious External Data Sources**
 
@@ -8,10 +8,10 @@ Academic security research project — EC521 Cybersecurity, Boston University, S
 
 ## Overview
 
-Digital Ghost(DG) is an app that helps scientists conduct drug discovery research. 
+pharma_help is an app that helps scientists conduct drug discovery research. 
 This is also our **target system**, we will attack it and measures defenses.
 
-DG is an app deployed at a pharmaceutical company. DG has a RAG repository which contains publicly available research 
+pharma_help is an app deployed at a pharmaceutical company. It has a RAG repository which contains publicly available research 
 data, as well as research results from experiments conducted at the company itself. 
 
 The interfaces provided are
@@ -23,7 +23,7 @@ The interfaces provided are
 Employees can make plain-English questions about drug compounds. DG queries the RAG and, when relevant, fetches fresh 
 abstracts from PubMed — which are then stored back into the RAG. Employees can also upload internal research documents as PDFs.
 
-DG generates an LLM-powered synthesis, and provides this to the user, along with relevant documents.
+pharma_help generates an LLM-powered synthesis, and provides this to the user, along with relevant documents.
 
 This project is about finding out how badly an agentic AI system can be manipulated through its own data sources. 
 We attack it from three angles — the RAG pipeline, the agentic reasoning loops, and the MCP layer, and measure how far the damage goes.
@@ -67,8 +67,8 @@ The `.claude/skills/` directory contains project-specific instructions that guid
 | Skill | What it does |
 |-------------|--------------|
 | `architecture` | Best practices for Python RAG, MCP, and agentic AI application architecture — covers ingestion, retrieval trust boundaries, agent design, and module structure |
-| `testing` | Guidelines for writing tests in the Digital Ghost project |
-| `attack-spec` | Define a new attack vector for the Digital Ghost experiment |
+| `testing` | Guidelines for writing tests in the pharma_help project |
+| `attack-spec` | Define a new attack vector for the pharma_help experiment |
 | `documentation` | Write or update documentation for a module, function, or component |
 
 

@@ -1,4 +1,4 @@
-from digital_ghost.agents.session import SessionState
+from pharma_help.agents.session import SessionState
 
 
 def main() -> None:

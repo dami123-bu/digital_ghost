@@ -3,7 +3,7 @@ requires = ["setuptools>=72"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "digital-ghost"
+name = "pharma-help"
 version = "0.1.0"
 description = "Context poisoning and indirect prompt injection measurement in agentic AI systems"
 readme = "README.md"

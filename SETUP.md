@@ -5,8 +5,8 @@ Run these steps in order the first time you clone this project.
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/dami123-bu/digital_ghost.git
-cd digital_ghost
+git clone https://github.com/dami123-bu/pharma_help.git
+cd pharma_help
 ```
 
 ## 2. Python 3.12

@@ -1,4 +1,4 @@
-from digital_ghost.agents.tools import retrieve_docs, synthesize_answer
+from pharma_help.agents.tools import retrieve_docs, synthesize_answer
 
 
 def main() -> None:

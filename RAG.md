@@ -1,6 +1,6 @@
-# Digital Ghost — RAG Application Architecture
+# pharma_help — RAG Application Architecture
 
-This is the RAG component for Digital Ghost.
+This is the RAG component for pharma_help.
 
 The app allows users to query a biomedical knowledge base using natural language, 
 upload their own PDFs into the knowledge base, and receive LLM-synthesized answers alongside the source documents.

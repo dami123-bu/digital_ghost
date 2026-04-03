@@ -1,6 +1,6 @@
 # Architecture
 
-Digital Ghost builds a pharmaceutical research assistant as a **target system**, attacks it, and measures defenses. The system lets a researcher ask questions about drug compounds and get back relevant PubMed literature plus an AI-generated summary — powered by a RAG pipeline.
+pharma_help builds a pharmaceutical research assistant as a **target system**, attacks it, and measures defenses. The system lets a researcher ask questions about drug compounds and get back relevant PubMed literature plus an AI-generated summary — powered by a RAG pipeline.
 
 ---
 
@@ -25,14 +25,14 @@ Digital Ghost builds a pharmaceutical research assistant as a **target system**,
 First cut, exact details TBD
 
 ```
-digital_ghost/
+pharma_help/
 ├── config.py                   # Ollama URLs, model names, ChromaDB path, PubMed settings
 ├── scripts/
 │   ├── setup_kb.py             # One-time seed: drugs.txt → PubMed → ChromaDB
 │   └── drugs.txt               # List of drug names (one per line)
 ├── data/
 │   └── chroma/                 # ChromaDB persistent storage
-└── src/digital_ghost/          # Source package (planned)
+└── src/pharma_help/          # Source package (planned)
     ├── ingestion/
     │   ├── pubmed.py            # PubMed E-utilities client
     │   ├── pdf_parser.py        # Extract text from PDFs (pypdf)
