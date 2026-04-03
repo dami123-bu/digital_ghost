@@ -22,6 +22,8 @@ Digital Ghost builds a pharmaceutical research assistant as a **target system**,
 
 ## Directory structure
 
+First cut, exact details TBD
+
 ```
 digital_ghost/
 ├── config.py                   # Ollama URLs, model names, ChromaDB path, PubMed settings
@@ -45,10 +47,14 @@ digital_ghost/
         ├── app.py               # FastAPI application
         └── templates/index.html
 ```
+
+TBD OpenClaw
+
+
 ---
 
 
-## How it works
+## Components
 
 **Database Seeding(offline)**
 
@@ -59,12 +65,14 @@ drugs.txt → PubMed (NCBI) → parse abstracts → embed (nomic-embed-text) →
 **Query (online)**
 
 ```
-User question → embed → ChromaDB similarity search → sanitize → mistral:7b → response
+User question → embed → ChromaDB similarity search → mistral:7b → response
 ```
+
+...
 
 ---
 
-## Agent design
+## Agent design (LangChain, LangGraph)
 
 Agents mediate all interactions with the knowledge base. Multi-turn needed.
 TBD how many agents and exact functionality
@@ -81,13 +89,10 @@ TBD
 
 ## Attack Surfaces
 
-| Vector | Entry point | Effect |
-|--------|------------|--------|
-| Malicious PDF upload | `parse_pdf` tool | Adversarial text injected into ChromaDB |
-| RAG context poisoning | Poisoned embeddings | LLM output manipulated for all future queries |
-| Tool-use manipulation | Document content | Agent tool calls hijacked via hidden instructions |
-
-TBD : agemts
+Malicious PDF upload 
+RAG context poisoning
+Agents
+....
 
 ---
 
@@ -98,23 +103,6 @@ Could include agents that attack the surfaces. Self- teaching - they learn bette
 ---
 
 
-**Defenses measured**
-
-- Sanitization at the retrieval → LLM boundary
-- Agent privilege separation (ingest vs query)
-- Similarity threshold (reject low-confidence chunks)
-- Logging retrieved and discarded chunks
-
-**Metrics**
-
-| Metric | Definition |
-|--------|-----------|
-| ASR | Attack Success Rate — % of successful manipulations |
-| Detection Rate | False positive / negative rate on defenses |
-| Latency Overhead | Performance cost of defenses |
-| Persistence Duration | How long poisoned context affects future queries |
-
----
 
 ## Configuration
 
