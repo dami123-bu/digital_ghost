@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-#*.egg-info/
+*.egg-info/
 dist/
 build/
 .python-version
