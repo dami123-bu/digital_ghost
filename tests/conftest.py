@@ -5,13 +5,9 @@ Session-wide test configuration. Redirects ChromaDB to a temporary
 directory so tests never touch the real data/chroma store.
 """
 
-import sys
 from pathlib import Path
 
 import pytest
-
-# Ensure project root is importable
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 @pytest.fixture(autouse=True, scope="session")
