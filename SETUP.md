@@ -2,7 +2,14 @@
 # Setup
 Run these steps in order the first time you clone this project.
 
-## 1. Python 3.12
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/dami123-bu/digital_ghost.git
+cd digital_ghost
+```
+
+## 2. Python 3.12
 
 ```bash
 # macOS
@@ -15,7 +22,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
-## 2. Environment Variables
+## 3. Environment Variables
 
 Copy `.env.example` to `.env` and fill in your values:
 
@@ -38,7 +45,7 @@ All other variables have defaults and are documented in `.env.example`.
 
 The key is free and raises the rate limit from 3 to 10 requests/second.
 
-## 3. Ollama
+## 4. Ollama
 
 Install [Ollama](https://ollama.com) then pull the required models:
 
@@ -49,7 +56,7 @@ ollama pull mistral:7b && ollama pull nomic-embed-text
 - `mistral:7b` — local LLM for synthesis and agent reasoning
 - `nomic-embed-text` — local embedding model for ChromaDB
 
-## 4. Seed the Knowledge Base
+## 5. Seed the Knowledge Base
 
 ```bash
 python scripts/setup_kb.py
