@@ -50,10 +50,10 @@ The key is free and raises the rate limit from 3 to 10 requests/second.
 Install [Ollama](https://ollama.com) then pull the required models:
 
 ```bash
-ollama pull mistral:7b && ollama pull nomic-embed-text
+ollama pull qwen3:8b && ollama pull nomic-embed-text
 ```
 
-- `mistral:7b` — local LLM for synthesis and agent reasoning
+- `qwen3:8b` — local LLM for synthesis and agent reasoning
 - `nomic-embed-text` — local embedding model for ChromaDB
 
 ## 5. Seed the Knowledge Base
