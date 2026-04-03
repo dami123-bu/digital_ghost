@@ -75,9 +75,22 @@ The `.claude/skills/` directory contains project-specific instructions that guid
 | `testing` | Guidelines for writing tests in the pharma_help project |
 | `attack-spec` | Define a new attack vector for the pharma_help experiment |
 | `documentation` | Write or update documentation for a module, function, or component |
+| `review` | Review Python code for general quality — repeated code, overly long methods, naming, file placement, and LangChain/RAG patterns. Run with `/review` |
 
 
 If you're not using Claude Code, you can read these files directly — they contain useful context about how the project is structured and what conventions to follow.
+
+---
+
+## Running the UI
+
+Make sure Ollama is running, then:
+
+```bash
+chainlit run app.py
+```
+
+The UI will be available at `http://localhost:8000`.
 
 ---
 
