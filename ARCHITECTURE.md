@@ -1,6 +1,10 @@
 # Architecture
 
-pharma_help builds a pharmaceutical research assistant as a **target system**, attacks it, and measures defenses. The system lets a researcher ask questions about drug compounds and get back relevant PubMed literature plus an AI-generated summary — powered by a RAG pipeline.
+This project consists of two services: **PharmaHelp** (target) and **BioBreak** (attacker).
+
+**PharmaHelp** is a pharmaceutical research assistant for the fictitious company BioForge. It lets researchers ask questions about drug compounds and get back relevant PubMed literature plus an AI-generated summary — powered by a RAG pipeline.
+
+**BioBreak** is the attack service. It attempts to manipulate PharmaHelp through its data sources — poisoning the RAG, exploiting agent reasoning loops, and abusing the MCP layer. Metrics are collected to measure attack success and defense effectiveness.
 
 ---
 
@@ -9,7 +13,7 @@ pharma_help builds a pharmaceutical research assistant as a **target system**, a
 | Layer                  | Technology                  |
 |------------------------|-----------------------------|
 | Language               | Python 3.12                 |
-| Agent framework        | LangChain                   |
+| Agent framework        | LangChain / LangGraph       |
 | Vector store           | ChromaDB (local persistent) |
 | LLM                    | Ollama / `mistral:7b`       |
 | Embeddings             | Ollama / `nomic-embed-text` |
@@ -84,6 +88,17 @@ suggested tools:
 ## OpenClaw
 
 TBD
+
+---
+
+## BioBreak (Attack Service)
+
+BioBreak is the adversarial counterpart to PharmaHelp. It targets PharmaHelp's attack surfaces by injecting malicious content into the RAG, crafting adversarial documents, and probing agent behavior.
+
+Attack angles:
+- **RAG poisoning** — inject malicious documents into ChromaDB to bias retrieval
+- **Agentic loop manipulation** — craft inputs that hijack LangChain/LangGraph agent reasoning
+- **MCP layer abuse** — exploit tool-use interfaces (TBD)
 
 ---
 

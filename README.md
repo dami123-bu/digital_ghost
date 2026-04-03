@@ -1,6 +1,7 @@
 # pharma_help
 
-**Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious External Data Sources**
+**Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious
+External Data Sources**
 
 Academic security research project — EC521 Cybersecurity, Boston University, Spring 2026.
 
@@ -8,25 +9,29 @@ Academic security research project — EC521 Cybersecurity, Boston University, S
 
 ## Overview
 
-pharma_help is an app that helps scientists conduct drug discovery research. 
-This is also our **target system**, we will attack it and measures defenses.
+This is for a project that examines security and defenses for an agentic system. We want to identify attack surfaces
+and vectors - we will collect metrics. There will be a target application (PharmaHelp), as well as an 
+attack service (BioBreak). BioBreak that will attempt to attack PharmaHelp.
 
-pharma_help is an app deployed at a pharmaceutical company. It has a RAG repository which contains publicly available research 
-data, as well as research results from experiments conducted at the company itself. 
-
-The interfaces provided are
-- Employees can upload files with research results
-- Employees can query the app for drug information 
-- A synthesized summary with files are provided to the employee
-- TBD MCP/Open Claw Layer
-
-Employees can make plain-English questions about drug compounds. DG queries the RAG and, when relevant, fetches fresh 
-abstracts from PubMed — which are then stored back into the RAG. Employees can also upload internal research documents as PDFs.
-
-pharma_help generates an LLM-powered synthesis, and provides this to the user, along with relevant documents.
+A fictitious biotech company BioForge needs an application to help with managing research documents. The proposed
+app PharmaHelp will allow users to browse internal documents as well as public databases (Pubmed). This repository will
+be implemented as a RAG. The app allows - 
+- User can upload research documents 
+- User can make natural language queries
+- The app will generate a synthesis summary document. The synthesis, along with supporting documents
+will be made available to the user.
 
 This project is about finding out how badly an agentic AI system can be manipulated through its own data sources. 
 We attack it from three angles — the RAG pipeline, the agentic reasoning loops, and the MCP layer, and measure how far the damage goes.
+
+##TBD : MCP/OpenClaw 
+
+## Technology
+
+### PharmaHelp
+This will be implemented in python 3.12. ChromaDB is the RAG. Ollama is the model. There will be
+agents (Langchain/LangGraph)
+TBD : MCP/OpenClaw
 
 ---
 
