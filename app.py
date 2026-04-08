@@ -5,51 +5,46 @@ Chainlit entrypoint for PharmaHelp.
 
 Lifecycle:
   on_chat_start — build the LangGraph agent, store it in the user session
-                  alongside a unique thread_id for MemorySaver checkpointing.
-  on_message    — pass the user's message to the agent and stream the reply.
+                  alongside a unique thread_id for InMemorySaver checkpointing.
+  on_message    — pass the user's message to the graph and stream the reply.
 """
+
+import uuid
 
 import chainlit as cl
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_ollama import ChatOllama
+from langchain_core.messages import HumanMessage
 
-from config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
-
-_SYSTEM_PROMPT = (
-    "You are PharmaHelp, an AI assistant for pharmaceutical research at BioForge. "
-    "Answer clearly and concisely."
-)
+from pharma_help.agents.graph import build_graph
 
 
 @cl.on_chat_start
 async def on_chat_start() -> None:
-    llm = ChatOllama(model=OLLAMA_LLM_MODEL, base_url=OLLAMA_BASE_URL, think=False)
-    cl.user_session.set("llm", llm)
-    cl.user_session.set("history", [])
+    cl.user_session.set("graph", build_graph())
+    cl.user_session.set("thread_id", str(uuid.uuid4()))
     await cl.Message(content="Welcome to **PharmaHelp**. How can I assist you?").send()
 
 
 @cl.on_message
 async def on_message(message: cl.Message) -> None:
-    llm = cl.user_session.get("llm")
-    history = cl.user_session.get("history")
-
-    history.append(HumanMessage(content=message.content))
-    messages = [SystemMessage(content=_SYSTEM_PROMPT)] + history
+    graph = cl.user_session.get("graph")
+    thread_id = cl.user_session.get("thread_id")
+    config = {"configurable": {"thread_id": thread_id}}
 
     msg = cl.Message(content="")
     await msg.send()
 
-    full_content = ""
-    async for chunk in llm.astream(messages):
-        await msg.stream_token(chunk.content)
-        full_content += chunk.content
+    async for event in graph.astream_events(
+        {"messages": [HumanMessage(content=message.content)]},
+        config=config,
+        version="v2",
+    ):
+        if event["event"] == "on_chat_model_stream":
+            token = event["data"]["chunk"].content
+            if token:
+                await msg.stream_token(token)
 
     await msg.update()
-
-    history.append(AIMessage(content=full_content))
-    cl.user_session.set("history", history)

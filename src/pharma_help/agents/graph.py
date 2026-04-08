@@ -6,7 +6,7 @@ LangGraph chat agent for PharmaHelp.
 Graph shape:  START -> generate -> END
 
 The generate node calls ChatOllama with the full accumulated message history.
-MemorySaver checkpoints state per thread_id, so conversation history persists
+InMemorySaver checkpoints state per thread_id, so conversation history persists
 across turns within a session without the caller needing to track it.
 
 RAG hook: when ready, add a retrieve node before generate and extend
@@ -28,20 +28,17 @@ _SYSTEM_PROMPT = (
 
 
 def build_graph():
-    """Build and return a compiled LangGraph graph with MemorySaver checkpointing.
+    """Build and return a compiled LangGraph graph with InMemorySaver checkpointing.
 
     Each call returns an independent graph with its own InMemorySaver instance,
     so Chainlit sessions are fully isolated.
 
     Returns:
-        CompiledStateGraph ready for async invocation.
+        CompiledStateGraph ready for async streaming via astream().
     """
-    print(f"[graph] using model: {OLLAMA_LLM_MODEL}")
     llm = ChatOllama(model=OLLAMA_LLM_MODEL, base_url=OLLAMA_BASE_URL, think=False)
 
     async def generate(state: MessagesState) -> dict:
-        # Prepend system prompt at call time — not stored in state, so it
-        # does not accumulate through the add_messages reducer on each turn.
         messages = [SystemMessage(content=_SYSTEM_PROMPT)] + state["messages"]
         response = await llm.ainvoke(messages)
         return {"messages": [response]}
