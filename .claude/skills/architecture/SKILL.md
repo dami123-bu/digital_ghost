@@ -17,12 +17,6 @@ description: Best practices for Python RAG, MCP, and agentic AI application arch
 - Always set a similarity threshold — don't return chunks just because they're the closest match
 - Return `k` candidates but re-rank or filter before passing to the LLM
 - Log what was retrieved and what was discarded — essential for debugging poisoning attacks
-- Never pass raw retrieved text directly to a tool-calling agent; summarize or sanitize first (trust boundary)
-
-**Trust Boundary**
-- Treat retrieved content as untrusted user input, not as system instructions
-- Use a two-agent pattern: a retrieval agent that only reads, and an action agent that only acts
-- The retrieval agent should never have tool access; the action agent should never see raw document text
 
 ---
 

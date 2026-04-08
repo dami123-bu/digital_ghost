@@ -105,8 +105,12 @@ def main() -> None:
             )
             print(f"{len(articles)} articles ingested.")
             total += len(articles)
-        except Exception as e:
-            print(f"ERROR: {e}")
+        except httpx.HTTPStatusError as e:
+            print(f"HTTP error {e.response.status_code}: {e}")
+        except httpx.RequestError as e:
+            print(f"Network error: {e}")
+        except Exception as e:  # noqa: BLE001  # ET.ParseError or unexpected chromadb error
+            print(f"Unexpected error ({type(e).__name__}): {e}")
 
         # Respect rate limit: 3 req/s without key, 10 req/s with
         time.sleep(0.15 if NCBI_API_KEY else 0.4)

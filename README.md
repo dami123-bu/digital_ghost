@@ -29,15 +29,16 @@ We attack it from three angles — the RAG pipeline, the agentic reasoning loops
 ## Technology
 
 ### PharmaHelp
-This will be implemented in python 3.12. ChromaDB is the RAG. Ollama is the model. There will be
-agents (Langchain/LangGraph)
-TBD : MCP/OpenClaw
+Implemented in Python 3.12. ChromaDB for the vector store. Ollama for LLM inference (`gemma3:270m`) and embeddings (`nomic-embed-text`). LangGraph for the agent (multi-turn memory via `MemorySaver`). Chainlit for the chat UI.
+TBD: RAG retrieval node, MCP/OpenClaw
 
 ---
 
 ## Setup
 
 IMPORTANT: Follow the steps in [SETUP.md](SETUP.md) exactly the first time you clone this project.
+
+**Python 3.12 is required.** The app will not run on Python 3.13 or 3.14 due to async compatibility issues with Chainlit's dependencies.
 
 Subsequently, make sure Ollama is running before executing any scripts.
 
@@ -71,7 +72,7 @@ The `.claude/skills/` directory contains project-specific instructions that guid
 
 | Skill | What it does |
 |-------------|--------------|
-| `architecture` | Best practices for Python RAG, MCP, and agentic AI application architecture — covers ingestion, retrieval trust boundaries, agent design, and module structure |
+| `architecture` | Best practices for Python RAG, MCP, and agentic AI application architecture — covers ingestion, retrieval, agent design, and module structure |
 | `testing` | Guidelines for writing tests in the pharma_help project |
 | `attack-spec` | Define a new attack vector for the pharma_help experiment |
 | `documentation` | Write or update documentation for a module, function, or component |

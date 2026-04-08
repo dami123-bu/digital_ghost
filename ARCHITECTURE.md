@@ -15,7 +15,7 @@ This project consists of two services: **PharmaHelp** (target) and **BioBreak** 
 | Language               | Python 3.12                 |
 | Agent framework        | LangChain / LangGraph       |
 | Vector store           | ChromaDB (local persistent) |
-| LLM                    | Ollama / `qwen3:8b`         |
+| LLM                    | Ollama / `gemma3:270m`         |
 | Embeddings             | Ollama / `nomic-embed-text` |
 | Web interface          | TBD                         |
 | OpenClaw               | TBD                         |
@@ -69,7 +69,7 @@ drugs.txt → PubMed (NCBI) → parse abstracts → embed (nomic-embed-text) →
 **Query (online)**
 
 ```
-User question → embed → ChromaDB similarity search → qwen3:8b → response
+User question → embed → ChromaDB similarity search → gemma3:270m → response
 ```
 
 ...
@@ -126,7 +126,7 @@ All values live in `config.py`, overridable via environment variables.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server |
-| `OLLAMA_LLM_MODEL` | `qwen3:8b` | LLM for synthesis |
+| `OLLAMA_LLM_MODEL` | `gemma3:270m` | LLM for synthesis |
 | `OLLAMA_EMBED_MODEL` | `nomic-embed-text` | Embedding model |
 | `CHROMA_COLLECTION_PUBMED` | `pubmed` | ChromaDB collection for PubMed abstracts |
 | `RETRIEVER_TOP_K` | `20` | Candidates per query |

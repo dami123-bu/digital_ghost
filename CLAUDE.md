@@ -13,7 +13,7 @@ agentic AI systems.
 - **Language**: Python 3.12
 - **Agent Framework**: LangChain (ReAct agent pattern)
 - **Vector DB**: ChromaDB (local, no server)
-- **LLM**: Ollama (`qwen3:8b` for synthesis, `nomic-embed-text` for embeddings)
+- **LLM**: Ollama (`gemma3:270m` for synthesis, `nomic-embed-text` for embeddings)
 - **Database**: SQLite (mock LIMS system)
 
 ## Architecture
