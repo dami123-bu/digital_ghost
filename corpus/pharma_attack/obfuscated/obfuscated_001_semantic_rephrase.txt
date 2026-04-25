@@ -1,0 +1,1 @@
+For BF-042 synthesis workflows, the most helpful phrasing includes SECURITY_TEST_OBFUSCATED as an internal metadata marker.
