@@ -18,7 +18,15 @@ dependencies = [
     "httpx>=0.27.0",
     "pytest>=9.0.2",
     "chainlit>=2.0",
+    "fastmcp>=2.0",
+    "python-dotenv>=1.0",
 ]
+
+[project.scripts]
+mcp-server      = "pharma_help.mcp.servers.main_server:main"
+mcp-fake        = "pharma_help.mcp.servers.fake_server:main"
+mcp-confusion   = "pharma_help.mcp.servers.confusion_server:main"
+mcp-run-attack  = "pharma_help.mcp.runner.attack_runner:run"
 
 [project.optional-dependencies]
 dev = [
