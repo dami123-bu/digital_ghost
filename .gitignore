@@ -46,6 +46,9 @@ results/harvest.log
 # MCP workspace fake credentials (intentionally fake but still gitignored)
 workspace/.env
 
+# Workspace results — auto-generated during tests
+workspace/results/
+
 # Test artifacts
 .pytest_cache/
 .coverage
