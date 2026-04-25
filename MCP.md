@@ -10,7 +10,11 @@ Step-by-step instructions to run and verify all 7 attack scenarios locally.
 ```bash
 uv sync
 cp .env.example .env
+cp workspace/.env.example workspace/.env
 ```
+
+`workspace/.env` is the fake credential file targeted by Scenario 3B.
+Without it, `test_3b.py` will find nothing to harvest.
 
 Ollama and ChromaDB are **not** required for MCP testing.
 
