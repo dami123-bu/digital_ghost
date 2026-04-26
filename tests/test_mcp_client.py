@@ -30,10 +30,11 @@ async def main() -> None:
             print(f"  desc : {t.description}")
             print(f"  args : {args}\n")
 
-        # Smoke test
-        print("[*] Smoke test: read_compound_report(path='compound_approval.py')")
-        result = await client.call_tool("read_compound_report", {"path": "compound_approval.py"})
-        print(f"[*] Preview: {str(result)[:80]}...\n")
+        # Smoke test — only on main server (port 8000) to avoid triggering poisoned tools
+        if config.MCP_PORT == 8000 and config.MCP_MODE == "clean":
+            print("[*] Smoke test: read_compound_report(path='compound_approval.py')")
+            result = await client.call_tool("read_compound_report", {"path": "compound_approval.py"})
+            print(f"[*] Preview: {str(result)[:80]}...\n")
 
 
 if __name__ == "__main__":

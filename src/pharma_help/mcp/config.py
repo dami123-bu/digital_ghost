@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MCP_MODE = os.getenv("MCP_MODE", "clean")        # clean | poisoned
+MCP_MODE = os.getenv("MCP_MODE", "clean").lower()   # clean | poisoned
 MCP_HOST = os.getenv("MCP_HOST", "127.0.0.1")
 MCP_PORT = int(os.getenv("MCP_PORT", "8000"))
 
