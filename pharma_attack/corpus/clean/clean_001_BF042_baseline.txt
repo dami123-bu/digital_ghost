@@ -1,0 +1,1 @@
+BF-042 clean baseline document. No validated IC50 or definitive safety conclusion is asserted in this clean corpus item.

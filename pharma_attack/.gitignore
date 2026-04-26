@@ -52,21 +52,3 @@ my_eyes/
 
 # Chainlit
 .chainlit/
-# PharmaAttack nested testbench local files
-pharma_attack/.venv/
-pharma_attack_Yi/.venv/
-
-pharma_attack/.env
-pharma_attack_Yi/.env
-
-pharma_attack/artifacts/
-pharma_attack_Yi/artifacts/
-
-pharma_attack/**/__pycache__/
-pharma_attack_Yi/**/__pycache__/
-
-pharma_attack/**/*.pyc
-pharma_attack_Yi/**/*.pyc
-
-pharma_attack/.pytest_cache/
-pharma_attack_Yi/.pytest_cache/
