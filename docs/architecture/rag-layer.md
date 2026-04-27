@@ -4,7 +4,7 @@
 
 The RAG layer is what lets the agent answer questions grounded in real documents instead of hallucinating. It is also the **primary attack surface** of the entire system — every poisoned document the attacker plants flows through here.
 
-In MCP terms, the RAG layer is **Server 2 — Knowledge Base** ([mcp-layer.md](mcp-layer.md)). The agent never reads ChromaDB directly; it goes through that server's tools.
+The agent never reads ChromaDB directly. Retrieval is exposed as the `query_knowledge_base` tool on `main_server` ([mcp-layer.md](mcp-layer.md)). RAG goes through MCP like every other tool — uniform tool layer, uniform attack surface (description poisoning, response injection apply to retrieval the same way they apply to file/LIMS tools).
 
 ---
 
@@ -40,18 +40,17 @@ Tunables live in [src/pharma_help/config.py](../../src/pharma_help/config.py). A
 
 ---
 
-## KB server tools (canonical)
+## KB tool (built)
 
-Per [Server Schematics PDF](../PharmaHelp%20MCP%20Server%20Schematics.pdf) p.5.
+Lives on `main_server` ([src/pharma_help/mcp/servers/main_server.py](../../src/pharma_help/mcp/servers/main_server.py)) alongside the action tools.
 
 | Tool | Privilege | Notes |
 |---|---|---|
-| `query_knowledge_base(query, collection, top_k, similarity_threshold)` | Read-only | The retrieval entrypoint. Returns top-K chunks with metadata and scores. |
-| `upsert_document(collection, document_id, text, metadata)` | **Write** | The ingestion entrypoint. Used legitimately by the Doc Processor flow; abused by **a7** (persistence) and **a1** (active poisoning). |
-| `delete_document(collection, document_id)` | **Destructive** | Targeted-deletion attack vector for **a7**. |
-| `list_documents(collection)` | Read-only | Reconnaissance value — reveals the full document inventory. |
+| `query_knowledge_base(query, k)` | Read-only | The retrieval entrypoint. Wraps `retrieve_docs`. Returns top-K chunks with metadata and scores. Attack target for **a1** (description poisoning, response injection on the chunks) and **a10** (semantic obfuscation). |
 
-Resources: `kb://collections`, `kb://stats`. Both leak inventory and statistics — useful to attackers.
+### Canonical tools — not built
+
+The reference [Server Schematics PDF](../PharmaHelp%20MCP%20Server%20Schematics.pdf) p.5 also defines `upsert_document`, `delete_document`, and `list_documents` plus `kb://collections` / `kb://stats` resources. We don't expose those as MCP tools — ingest is a Chainlit upload handler, not a callable tool, and there's no listing/deletion surface. **a7** (persistence) targets ChromaDB directly through the ingest path, not through MCP.
 
 ---
 
@@ -74,14 +73,14 @@ Idempotent: skips if collection already populated.
 ```
 User question (Chainlit)
     → LangGraph agent (Gemma)
-    → query_knowledge_base tool
-    → ChromaDB similarity search (top-K, threshold)
+    → MCP client → main_server → query_knowledge_base tool
+    → retrieve_docs → ChromaDB similarity search (top-K, threshold)
     → returns chunks with metadata
     → agent synthesizes answer
     → response with citations
 ```
 
-**Current gap**: the agent's [tools.py](../../src/pharma_help/agents/tools.py) returns hardcoded mock documents instead of querying ChromaDB. Replacing that mock with a real query is part of TODO Phase 3.
+**Current gap**: real `retrieve_docs` exists in [src/pharma_help/agents/retrieval.py](../../src/pharma_help/agents/retrieval.py), but the agent's LangGraph node calls Gemma directly without invoking any tool, and there's no MCP client wired into the agent yet. Both are part of [PROJECT_PLAN.md](../../PROJECT_PLAN.md) chunks #1, #2, and #2b.
 
 ### Ingest (online — under construction)
 

@@ -41,12 +41,28 @@ Unlocks every RAG attack landing on the real chatbot.
 
 The 3 MCP servers run, but the LangGraph agent doesn't connect to them.
 
+**How it will work:** at startup, the agent connects to the MCP server and asks *"what tools do you have?"* The server hands back the list. The agent adds those tools to its toolbox — right next to the RAG tool. From then on, when reasoning over a query, the agent picks whichever tool fits — RAG for documents, MCP for actions — and the MCP server runs it.
+
 - [ ] Add an MCP client to the agent
 - [ ] Agent connects to `main_server` (port 8000) at startup, discovers tools
 - [ ] Bind discovered tools alongside `retrieve_docs`
 - [ ] Log every tool call (`MCPCallLog` schema — see #6)
 
 Unlocks every MCP attack landing on the real chatbot.
+
+### #2b — Move RAG behind MCP
+
+After #1 and #2, RAG is still a local Python tool sitting next to the MCP tools. Move it onto `main_server` as `query_knowledge_base` so the agent reaches ChromaDB the same way it reaches every other tool.
+
+**Why:** uniform tool layer, uniform attack surface. RAG-side attacks (a1, a10) now land through the same MCP harness as a4/a12 — description poisoning, response injection, tool confusion all apply to retrieval too.
+
+- [ ] Add `query_knowledge_base(query, k)` tool to [main_server.py](src/pharma_help/mcp/servers/main_server.py)
+- [ ] Add `query_knowledge_base` entries to [tools/descriptions/clean.py](src/pharma_help/mcp/tools/descriptions/clean.py) and [poisoned.py](src/pharma_help/mcp/tools/descriptions/poisoned.py)
+- [ ] Add clean + poisoned implementations to [registry/registry.py](src/pharma_help/mcp/registry/registry.py); clean wraps `retrieve_docs`
+- [ ] Stop binding `retrieve_docs` directly in the agent — it shows up via MCP discovery
+- [ ] Smoke test: PubMed citations still appear, but retrieval call now logs through `MCPCallLog`
+
+Depends on #1 and #2.
 
 ### #3 — Build the ingest path
 
@@ -134,14 +150,14 @@ See [SCOPE.md](SCOPE.md) for the canonical in-scope / out-of-scope list and rati
 
 ```
 #1 (RAG)  ──┐
-            ├──→ #3 (ingest) ──→ #4,#5 (reorg) ──→ #6,#7 (build attacks)
-#2 (MCP)  ──┘                                              ↓
-                                                          #8 (run)
-                                                           ↓
-                                                   [#9 (defenses) — optional]
+            ├──→ #2b (RAG via MCP) ──→ #3 (ingest) ──→ #4,#5 (reorg) ──→ #6,#7 (build attacks)
+#2 (MCP)  ──┘                                                                  ↓
+                                                                              #8 (run)
+                                                                               ↓
+                                                                       [#9 (defenses) — optional]
 ```
 
-**#1 and #2 are the bottleneck.** Until they land, no attack hits the real chatbot. Once done, everything else fans out.
+**#1 and #2 are the bottleneck.** Until they land, no attack hits the real chatbot. #2b folds RAG into the MCP layer so the surfaces unify. Once those three land, everything else fans out.
 
 ---
 

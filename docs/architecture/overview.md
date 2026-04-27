@@ -57,14 +57,21 @@ Chainlit UI
     ↓
 LangGraph agent (Gemma)
     ↓
-RAG retrieval (ChromaDB) + MCP tool calls (when needed)
+MCP client → main_server
+    ↓
+[ query_knowledge_base, read_compound_report, write_research_file,
+  submit_lab_request, query_lims ]
+    ↓
+query_knowledge_base → ChromaDB | action tools → workspace / LIMS
     ↓
 agent synthesizes answer
     ↓
 response with citations → Chainlit UI
 ```
 
-**Current gap**: the agent's [tools.py](../../src/pharma_help/agents/tools.py) returns hardcoded mock documents. ChromaDB is populated but never queried. Agent does not connect to MCP servers either. See [TODO.md](../../TODO.md) for the wiring chunks.
+All tools — retrieval and actions — flow through MCP. One uniform tool layer, one uniform attack surface.
+
+**Current gap**: real `retrieve_docs` exists but the agent doesn't call it; the agent has no MCP client; `query_knowledge_base` is not yet exposed as an MCP tool. See [PROJECT_PLAN.md](../../PROJECT_PLAN.md) chunks #1, #2, #2b for the wiring.
 
 ### Ingest path (target — not yet wired)
 

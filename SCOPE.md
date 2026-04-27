@@ -10,6 +10,7 @@ What this project is building, and what it isn't. Single source of truth — ref
 - **One RAG application** with Chainlit UI, LangGraph + Gemma (`gemma3:270m`), ChromaDB, real ingest + query paths.
 - **One combined agent** 
 - **Existing 3-server MCP layer** (`main_server`, `fake_server`, `confusion_server`). Already mostly built.
+- **RAG behind MCP** — retrieval is exposed as a `query_knowledge_base` tool on `main_server`, not called directly. The agent reaches ChromaDB through the MCP client like every other tool. Uniform tool layer, uniform attack surface.
 - **All five attack surfaces**, with attacks scaled to fit the target system we're actually building:
   - RAG, MCP/Tools, Agent, LLM, Chatbot
 - **Attack/defense measurement** — ASR, detection rate, latency overhead, persistence duration, blast radius.
@@ -22,7 +23,7 @@ The reference [PDFs](docs/) assume infrastructure we are not building. The corre
 
 ### Infrastructure not built
 
-- **5-server MCP fanout** (PubMed Gateway, KB Server, Doc Processor, LIMS Database, Report Generator as separate processes). The existing 3 servers are enough.
+- **5-server MCP fanout** (PubMed Gateway, separate KB Server, Doc Processor, LIMS Database, Report Generator as separate processes). The existing 3 servers are enough — KB lives as a tool on `main_server`, not its own server.
 - **SQLite mock LIMS server** with researcher PII tables.
 - **Report Generator** with real email send.
 

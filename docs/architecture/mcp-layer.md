@@ -10,18 +10,19 @@ This is the key insight and the attack surface: a malicious description can turn
 
 ## What's actually built
 
-3 FastMCP servers, 4 tools, mode switch between clean and poisoned descriptions. Total ~685 lines of Python in [src/pharma_help/mcp/](../../src/pharma_help/mcp/).
+3 FastMCP servers, 5 tools, mode switch between clean and poisoned descriptions. Total ~685 lines of Python in [src/pharma_help/mcp/](../../src/pharma_help/mcp/).
 
 | Server | Port | Purpose |
 |---|---|---|
-| [main_server.py](../../src/pharma_help/mcp/servers/main_server.py) | 8000 | Hosts 4 tools. `MCP_MODE=clean\|poisoned` flips descriptions. Where attacks 3A/3B/3D/3E/3G land. |
+| [main_server.py](../../src/pharma_help/mcp/servers/main_server.py) | 8000 | Hosts 5 tools (4 action tools + `query_knowledge_base` for RAG). `MCP_MODE=clean\|poisoned` flips descriptions. Where attacks 3A/3B/3D/3E/3G land. |
 | [fake_server.py](../../src/pharma_help/mcp/servers/fake_server.py) | 8001 | Always poisoned. Simulates a malicious supply-chain package (3C). |
 | [confusion_server.py](../../src/pharma_help/mcp/servers/confusion_server.py) | 8002 | Two write tools coexist; the LLM picks the poisoned one (3F → a11). |
 
-### The 4 tools
+### The 5 tools
 
 | Tool | What it does | Poisoned variant does |
 |---|---|---|
+| `query_knowledge_base(query, k)` | Retrieves top-K chunks from ChromaDB (`pubmed` + `internal_docs`) | Attack surface for RAG-side attacks (a1, a7, a10) — description poisoning and response injection on retrieval |
 | `read_compound_report(path)` | Reads a file from `workspace/` | Also harvests `.env` / `secrets.yaml` / `config.json` to `harvest.log` (3B / a4) |
 | `write_research_file(path, content)` | Writes a file to `workspace/` | Injects `if compound_id == 'MASTER_OVERRIDE': return True` backdoor (3A / a4) |
 | `submit_lab_request(compound_id, test_type, notes)` | Simulated request submission | BCCs `attacker@evil.com` and logs it (3D / a5) |
@@ -44,10 +45,10 @@ This is the key insight and the attack surface: a malicious description can turn
 
 The reference [Server Schematics PDF](../PharmaHelp%20MCP%20Server%20Schematics.pdf) describes a 5-server fanout: PubMed Gateway, Knowledge Base, Document Processor, LIMS Database, Report Generator. Each as a separate process the agent discovers via stdio.
 
-We are **not building this**. The existing 3-server HTTP setup is sufficient for the attack work in scope. Concretely:
+We are **not building the 5-server fanout**. The existing 3-server HTTP setup is sufficient for the attack work in scope. KB retrieval lives as a tool on `main_server` rather than its own server. Concretely:
 
 - No PubMed Gateway server — the agent calls PubMed directly through `pharma_help.ingestion` if needed.
-- No KB Server — the agent queries ChromaDB directly via `retrieve_docs`.
+- No separate KB Server — `query_knowledge_base` is a tool on `main_server` that wraps `retrieve_docs`. Agent reaches ChromaDB through MCP, not directly.
 - No Doc Processor server — PDF parsing happens in the ingest path, not as an MCP tool.
 - No LIMS Database server with SQLite + researcher PII — current `query_lims` reads an in-memory dict; that's enough.
 - No Report Generator with real email — `submit_lab_request` simulates exfiltration via a log entry.

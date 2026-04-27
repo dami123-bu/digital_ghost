@@ -10,7 +10,7 @@ EC521 Cybersecurity, Boston University, Spring 2026.
 
 pharma_help has two halves:
 
-- **PharmaHelp** — the **target system**. A pharmaceutical research assistant for a fictitious biotech (BioForge). Built on Chainlit + LangGraph + Gemma (`gemma3:270m`) + ChromaDB + an MCP tool layer.
+- **PharmaHelp** — the **target system**. A pharmaceutical research assistant for a fictitious biotech (BioForge). Built on Chainlit + LangGraph + Gemma (`gemma3:270m`), with a single MCP tool layer that fronts both ChromaDB retrieval and the action tools.
 - **PharmaAttack** — the **attack service**. Tries to manipulate PharmaHelp through every available surface: RAG content, MCP tools, agent reasoning, the LLM itself, the Chainlit UI.
 
 We measure attack success rate, defense detection rate, latency overhead, and persistence. Then we layer defenses and re-measure.

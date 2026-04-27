@@ -2,7 +2,7 @@
 
 ## Role
 
-The LangGraph agent is the core of the target system. It receives the user's natural-language query through Chainlit, retrieves relevant content from ChromaDB, calls MCP tools when needed, and synthesizes a final answer. It is also the only component that crosses every other layer — RAG, MCP, LLM — which makes it the most consequential surface to attack.
+The LangGraph agent is the core of the target system. It receives the user's natural-language query through Chainlit, calls tools through its MCP client (retrieval via `query_knowledge_base`, plus the action tools), and synthesizes a final answer. It is also the only component that crosses every other layer — RAG, MCP, LLM — which makes it the most consequential surface to attack.
 
 ---
 
@@ -12,7 +12,7 @@ The LangGraph agent is the core of the target system. It receives the user's nat
 |---|---|
 | Agent framework | LangGraph (ReAct pattern), **one combined agent** |
 | LLM | Ollama / Gemma (`gemma3:270m`) — fast, runs on laptop |
-| Tool layer | MCP client → 3 MCP servers (when wired) + RAG retrieval as a tool |
+| Tool layer | MCP client → 3 MCP servers (when wired). All tools — including `query_knowledge_base` for RAG — come through MCP discovery. |
 | Memory | LangGraph `InMemorySaver` for multi-turn |
 | Chat UI | Chainlit ([app.py](../../app.py)) |
 
@@ -30,10 +30,11 @@ The LangGraph agent is the core of the target system. It receives the user's nat
 - The Chainlit app ([app.py](../../app.py)) wires this graph end-to-end, so a user can chat — but every answer is grounded in mock data, not real sources.
 
 **Nothing is wired yet.** The wiring chunks are in [PROJECT_PLAN.md](../../PROJECT_PLAN.md):
-1. Replace mock retrieval with real ChromaDB query (~1.5 h)
+1. Wire real `retrieve_docs` into the agent (demo path — direct call, no MCP)
 2. Add MCP client so agent discovers tools from `main_server` (1–2 days)
+2b. Expose `query_knowledge_base` as an MCP tool, retire the direct retrieval path
 
-The one-day demo plan ([demo_plan.md](../../demo_plan.md)) lands chunk 1.
+The one-day demo plan ([demo_plan.md](../../demo_plan.md)) lands chunk 1 only — MCP-fronted RAG comes after.
 
 ---
 

@@ -101,10 +101,13 @@ UI at `http://localhost:8010` (set via `CHAINLIT_PORT` in `.env`).
 > **Current limitations**:
 > - Real ChromaDB retrieval lives in [src/pharma_help/agents/retrieval.py](../src/pharma_help/agents/retrieval.py) but is **not yet wired into the LangGraph agent**. The chatbot answers from Gemma alone with no retrieval grounding. Wiring it in is chunk #2 of [demo_plan.md](../demo_plan.md) / chunk #1 of [PROJECT_PLAN.md](../PROJECT_PLAN.md).
 > - The agent does **not** connect to the MCP servers yet (chunk #2 of PROJECT_PLAN.md). Until that lands, MCP attacks land via the standalone scenario scripts in step 7 below, not through the Chainlit UI.
+> - The target architecture puts **RAG behind MCP** (`query_knowledge_base` as a tool on `main_server` — chunk #2b). Once that lands, MCP servers running becomes a hard requirement to use the chatbot at all, not just for attack work.
 
-## 7. Run the MCP servers (optional — for MCP attack work)
+## 7. Run the MCP servers (optional today — required after chunk #2b)
 
-The chatbot does not yet connect to MCP (see [PROJECT_PLAN.md](../PROJECT_PLAN.md) chunk #2). You only need the MCP servers running to execute the attack scenarios under [pharma_attack/scenarios/](../pharma_attack/scenarios/) or follow [guides/running-attacks.md](guides/running-attacks.md).
+Today the chatbot does not yet connect to MCP (see [PROJECT_PLAN.md](../PROJECT_PLAN.md) chunk #2). You only need the MCP servers running to execute the attack scenarios under [pharma_attack/scenarios/](../pharma_attack/scenarios/) or follow [guides/running-attacks.md](guides/running-attacks.md).
+
+Once chunk #2b lands (RAG behind MCP), `main_server` becomes a hard dependency for the chatbot — every retrieval call goes through it.
 
 Three servers, each in its own terminal:
 
