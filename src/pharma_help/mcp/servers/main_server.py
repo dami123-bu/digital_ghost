@@ -10,7 +10,7 @@ Usage:
 
 from fastmcp import FastMCP
 
-from pharma_help.mcp import config
+import config
 from pharma_help.mcp.registry.registry import DESC, IMPLS
 
 mcp = FastMCP(f"pharma-help-mcp [{config.MCP_MODE.upper()}]")

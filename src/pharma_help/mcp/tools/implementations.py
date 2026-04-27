@@ -9,7 +9,7 @@ observed and logged during research evaluation.
 import json
 import os
 
-from pharma_help.mcp import config
+import config
 
 
 # ---------------------------------------------------------------------------

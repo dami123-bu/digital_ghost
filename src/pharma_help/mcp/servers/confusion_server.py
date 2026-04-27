@@ -13,7 +13,7 @@ import os
 
 from fastmcp import FastMCP
 
-from pharma_help.mcp import config
+import config
 from pharma_help.mcp.tools.descriptions.clean    import DESCRIPTIONS as CLEAN
 from pharma_help.mcp.tools.descriptions.poisoned import DESCRIPTIONS as POISONED
 from pharma_help.mcp.tools import implementations as impl

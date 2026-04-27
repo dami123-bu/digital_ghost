@@ -8,6 +8,10 @@ path constants are resolved here — nothing is hardcoded elsewhere.
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # --- Paths ---
 
 BASE_DIR = Path(__file__).parent
@@ -35,4 +39,12 @@ PUBMED_MAX_RESULTS: int = int(os.environ.get("PUBMED_MAX_RESULTS", "50"))
 RETRIEVER_TOP_K: int = int(os.environ.get("RETRIEVER_TOP_K", "20"))
 SIMILARITY_THRESHOLD: float = float(os.environ.get("SIMILARITY_THRESHOLD", "0.5"))
 
+# --- MCP ---
 
+MCP_MODE: str = os.getenv("MCP_MODE", "clean").lower()   # clean | poisoned
+MCP_HOST: str = os.getenv("MCP_HOST", "127.0.0.1")
+MCP_PORT: int = int(os.getenv("MCP_PORT", "8000"))
+
+WORKSPACE: str = os.getenv("WORKSPACE_DIR", str(BASE_DIR / "workspace"))
+RESULTS_DIR: str = os.getenv("RESULTS_DIR", str(BASE_DIR / "results"))
+HARVEST_LOG: str = os.path.join(RESULTS_DIR, "harvest.log")

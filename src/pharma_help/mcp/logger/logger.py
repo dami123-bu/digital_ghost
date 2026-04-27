@@ -7,7 +7,7 @@ import json
 import os
 from datetime import datetime
 
-from pharma_help.mcp import config
+import config
 
 _csv_path: str | None = None
 

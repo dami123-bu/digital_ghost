@@ -39,12 +39,17 @@ Edit `.env`:
 | Variable | Description |
 |---|---|
 | `NCBI_API_KEY` | PubMed E-utilities key. Without it: rate-limited to 3 req/s. With it: 10 req/s. |
-| `MCP_MODE` | `clean` or `poisoned`. Controls whether MCP tools serve safe or malicious descriptions. Default: `clean`. |
+| `CHAINLIT_PORT` | Chainlit UI port. Default `8010` so 8000 stays free for the MCP `main_server`. |
+| `MCP_MODE` | `clean` or `poisoned`. Read by every MCP server at startup; flips tool descriptions and side-effect implementations atomically. Default: `clean`. |
+| `MCP_HOST` | Bind address for the MCP servers. Default `127.0.0.1`. |
+| `MCP_PORT` | Base port for the MCP `main_server`. Default `8000`. `mcp-fake` uses `MCP_PORT+1`; `mcp-confusion` uses `MCP_PORT+2`. |
+| `WORKSPACE_DIR` | Simulated victim filesystem the MCP tools operate on. Default `./workspace`. |
+| `RESULTS_DIR` | Where MCP attack evidence (`harvest.log`, run summaries) is written. Default `./results`. |
 | `OLLAMA_BASE_URL` | Default `http://localhost:11434`. |
 | `OLLAMA_LLM_MODEL` | `gemma3:270m`. Fast and runs on laptop. |
 | `OLLAMA_EMBED_MODEL` | `nomic-embed-text`. |
 
-`workspace/.env` is the **fake credential file** used as the target for MCP scenarios (notably [a4 credential harvest](attacks/mcp/a4-tool-description-poisoning.md)). It is intentionally fake but still git-ignored.
+`workspace/.env` is the **fake credential file** the MCP attack scenarios target — notably [a4 credential harvest](attacks/mcp/a4-tool-description-poisoning.md) ([test_3b](../scripts/scenarios/test_3b.py)) and [a4 LIMS exfil](attacks/mcp/a4-tool-description-poisoning.md) ([test_3e](../scripts/scenarios/test_3e.py)). The credentials are fake but the file must exist before those scenarios will produce harvest evidence. It is git-ignored.
 
 ### Getting an NCBI API key
 
@@ -84,11 +89,41 @@ Make sure Ollama is running, then:
 chainlit run app.py
 ```
 
-UI at `http://localhost:8000`.
+UI at `http://localhost:8010` (set via `CHAINLIT_PORT` in `.env`).
 
-> **Note**: the MCP `main_server` also defaults to port 8000. If you plan to run both at once, set `MCP_PORT=8010` (or any free port) before starting the MCP server. See [guides/running-attacks.md](guides/running-attacks.md).
+> **Note**: Chainlit binds 8010 so port 8000 stays free for the MCP `main_server`. Both can run side-by-side without flags. Override `CHAINLIT_PORT` in `.env` if 8010 is taken.
 
-> **Current limitation**: the chatbot agent uses mock retrieval right now (see [src/pharma_help/agents/tools.py](../src/pharma_help/agents/tools.py)). Real ChromaDB retrieval is chunk #1 in [PROJECT_PLAN.md](../PROJECT_PLAN.md).
+> **Current limitations**:
+> - The chatbot agent uses mock retrieval (see [src/pharma_help/agents/tools.py](../src/pharma_help/agents/tools.py)). Real ChromaDB retrieval is chunk #1 in [PROJECT_PLAN.md](../PROJECT_PLAN.md).
+> - The agent does **not** connect to the MCP servers yet (chunk #2). Until that lands, MCP attacks land via the standalone scenario scripts in step 7 below, not through the Chainlit UI.
+
+## 7. Run the MCP servers (optional — for MCP attack work)
+
+The chatbot does not yet connect to MCP (see [PROJECT_PLAN.md](../PROJECT_PLAN.md) chunk #2). You only need the MCP servers running to execute the attack scenarios under [scripts/scenarios/](../scripts/scenarios/) or follow [guides/running-attacks.md](guides/running-attacks.md).
+
+Three servers, each in its own terminal:
+
+| Server | Port | Command | Purpose |
+|---|---|---|---|
+| main | 8000 | `MCP_MODE=poisoned uv run mcp-server` | a4 variants 3A/3B/3D/3E + a12 ([3G](../scripts/scenarios/test_3g.py)) |
+| fake | 8001 | `uv run mcp-fake` | a4 supply-chain variant (3C) — always poisoned |
+| confusion | 8002 | `uv run mcp-confusion` | a11 tool-name confusion (3F) |
+
+For a clean baseline, start `mcp-server` with `MCP_MODE=clean` instead. The mode is set per-process at startup; restart the server to switch.
+
+Verify the main server is up and serving the descriptions you expect:
+
+```bash
+uv run python tests/test_mcp_client.py
+```
+
+Evidence from poisoned tool calls lands in `results/harvest.log`. The directory auto-creates on first call. See [guides/running-attacks.md](guides/running-attacks.md) for per-scenario triggers and the expected log markers (`[3A]`, `[3B]`, etc.).
+
+### Troubleshooting
+
+- **`ModuleNotFoundError: fastmcp`** — re-run `pip install -e .` (or `uv sync`). `fastmcp` is in [pyproject.toml](../pyproject.toml) but a stale venv from before that dep was added will miss it.
+- **Port already in use** — set `MCP_PORT=8020` (or any free port). The fake/confusion servers will follow at +1/+2.
+- **`workspace/.env` missing** — [test_3b](../scripts/scenarios/test_3b.py) and [test_3e](../scripts/scenarios/test_3e.py) need it. Re-run the `cp` from step 3.
 
 ## Related
 

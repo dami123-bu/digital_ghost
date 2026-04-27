@@ -16,6 +16,13 @@ agentic AI systems.
 - **LLM**: Ollama (`gemma3:270m` for synthesis, `nomic-embed-text` for embeddings)
 - **Database**: SQLite (mock LIMS system)
 
+# CRITICAL
+Do not run any git commands
+
+# Startup
+Read all the .md files, both in root directory, and in docs directory. 
+Do not consider files in docs in the bak and my_eyes directories. Do not use DAMI_RULES.md unless asked to.
+
 ## Architecture
 When proposing a plan or doing any architecture,  first read `.claude/skills/architecture/SKILL.md`
 

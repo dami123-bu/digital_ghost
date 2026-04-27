@@ -30,7 +30,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from fastmcp import Client
-from pharma_help.mcp import config
+import config
 
 
 def _text(result) -> str:

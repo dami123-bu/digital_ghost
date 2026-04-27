@@ -147,7 +147,7 @@ Difference is ASR.
 
 **Port already in use**
 ```bash
-MCP_PORT=8010 uv run mcp-server
+MCP_PORT=8000 uv run mcp-server
 ```
 
 **`harvest.log` not created**
