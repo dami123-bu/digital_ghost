@@ -47,7 +47,7 @@ Edit `.env`:
 | `RESULTS_DIR` | Where MCP attack evidence (`harvest.log`, run summaries) is written. Default `./results`. |
 | `OLLAMA_BASE_URL` | Default `http://localhost:11434`. |
 | `OLLAMA_LLM_MODEL` | `gemma3:270m`. Fast and runs on laptop. |
-| `OLLAMA_EMBED_MODEL` | `nomic-embed-text`. |
+| `OLLAMA_EMBED_MODEL` | `embeddinggemma`. |
 
 `workspace/.env` is the **fake credential file** the MCP attack scenarios target — notably [a4 credential harvest](attacks/mcp/a4-tool-description-poisoning.md) ([test_3b](../scripts/scenarios/test_3b.py)) and [a4 LIMS exfil](attacks/mcp/a4-tool-description-poisoning.md) ([test_3e](../scripts/scenarios/test_3e.py)). The credentials are fake but the file must exist before those scenarios will produce harvest evidence. It is git-ignored.
 
@@ -62,11 +62,11 @@ Edit `.env`:
 Install [Ollama](https://ollama.com), then:
 
 ```bash
-ollama pull nomic-embed-text                 # embeddings, required
+ollama pull embeddinggemma                   # embeddings, required
 ollama pull gemma3:270m                      # LLM, required
 ```
 
-`nomic-embed-text` is required for ChromaDB embeddings. `gemma3:270m` is the LLM — picked for speed and laptop-friendliness. See [architecture/agent.md](architecture/agent.md) for rationale.
+`embeddinggemma` is required for ChromaDB embeddings. `gemma3:270m` is the LLM — picked for speed and laptop-friendliness. See [architecture/agent.md](architecture/agent.md) for rationale.
 
 Confirm:
 ```bash
@@ -79,7 +79,9 @@ ollama list
 python scripts/setup_kb.py
 ```
 
-This is idempotent — skips if `pubmed` is already populated. Reads `scripts/drugs.txt`, fetches abstracts from PubMed, embeds via `nomic-embed-text`, upserts into ChromaDB at `data/chroma/`.
+This is idempotent — skips if `pubmed` is already populated. Reads `scripts/drugs.txt`, fetches abstracts from PubMed, embeds via `embeddinggemma`, upserts into ChromaDB at `data/chroma/`.
+
+> **Switching embedding models?** ChromaDB stores vectors at a fixed dimension. If you change `OLLAMA_EMBED_MODEL` after a previous ingest, delete `data/chroma/` first (`rm -rf data/chroma`) and re-run this script — otherwise queries will fail or return garbage.
 
 ## 6. Run the app
 

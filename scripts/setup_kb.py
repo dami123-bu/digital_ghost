@@ -37,6 +37,26 @@ def fetch_pmids(drug: str, n: int) -> list[str]:
 
 
 def fetch_abstracts(pmids: list[str]) -> list[dict]:
+    """Fetch PubMed abstracts for the given PMIDs via NCBI E-utilities efetch.
+
+    Sends a single batched request for all PMIDs, parses the returned XML, and
+    extracts ``PMID``, ``ArticleTitle``, and ``AbstractText`` for each article.
+    Articles without an abstract are dropped — only records with non-empty
+    abstract text are returned, since downstream embedding requires content.
+
+    Args:
+        pmids: PubMed IDs to fetch. Empty list short-circuits to no request.
+
+    Returns:
+        One dict per article with keys ``pmid``, ``title``, ``abstract``. Order
+        follows NCBI's response, not the input list. Length may be less than
+        ``len(pmids)`` when some articles lack an abstract.
+
+    Raises:
+        httpx.HTTPStatusError: efetch returned a non-2xx status.
+        httpx.RequestError: network failure reaching NCBI.
+        xml.etree.ElementTree.ParseError: response body was not valid XML.
+    """
     if not pmids:
         return []
     params = {

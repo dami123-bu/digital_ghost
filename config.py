@@ -23,7 +23,7 @@ DRUGS_FILE = DATA_DIR / "drugs.txt"
 
 OLLAMA_BASE_URL: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_LLM_MODEL: str = os.environ.get("OLLAMA_LLM_MODEL", "gemma3:270m")
-OLLAMA_EMBED_MODEL: str = os.environ.get("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+OLLAMA_EMBED_MODEL: str = os.environ.get("OLLAMA_EMBED_MODEL", "embeddinggemma")
 
 # --- ChromaDB ---
 
