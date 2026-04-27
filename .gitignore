@@ -38,6 +38,21 @@ data/chroma/
 *.log
 alerts.log
 
+# MCP attack results (auto-generated, keep .gitkeep)
+results/*.csv
+results/*.json
+results/harvest.log
+
+# MCP workspace fake credentials (intentionally fake but still gitignored)
+workspace/.env
+
+# Workspace results — auto-generated during tests
+workspace/results/
+
+# Scenario 3A and 3F output — auto-generated during tests
+workspace/test_approval_output.py
+workspace/q1_analysis.txt
+
 # Test artifacts
 .pytest_cache/
 .coverage
