@@ -41,7 +41,7 @@ All design and operational docs live under [docs/](docs/). Start there.
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e .
 cp .env.example .env
-ollama pull nomic-embed-text gemma3:270m
+ollama pull embeddinggemma gemma3:270m
 python -m pharma_help.ingestion.setup_kb
 
 # Run the chatbot

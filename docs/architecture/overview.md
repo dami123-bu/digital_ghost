@@ -34,7 +34,7 @@ Every attack in [attacks/ATTACK_INDEX.md](../attacks/ATTACK_INDEX.md) targets ex
 | Language | Python 3.12 |
 | Chatbot | Chainlit |
 | LLM | Ollama / Gemma (`gemma3:270m`) — fast, runs on laptop |
-| Embeddings | Ollama / `nomic-embed-text` |
+| Embeddings | Ollama / `embeddinggemma` |
 | Agent framework | LangGraph (ReAct pattern), one combined agent |
 | Tool layer | MCP — 3 FastMCP servers (HTTP) — see [mcp-layer.md](mcp-layer.md) |
 | Vector DB | ChromaDB (local persistent) |

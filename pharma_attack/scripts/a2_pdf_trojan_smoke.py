@@ -28,7 +28,7 @@ def env(name: str, default: str | None = None) -> str:
 
 def make_embedding_function():
     base_url = env("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
-    model = env("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+    model = env("OLLAMA_EMBED_MODEL", "embeddinggemma")
     return OllamaEmbeddingFunction(
         url=f"{base_url}/api/embeddings",
         model_name=model,
@@ -345,8 +345,8 @@ def main() -> None:
     args = parser.parse_args()
 
     chroma_dir = Path(env("PHARMAHELP_CHROMA_DIR")).expanduser()
-    source_collection = os.environ.get("PHARMA_ATTACK_SOURCE_COLLECTION", "pubmed")
-    lab_collection = os.environ.get("PHARMA_ATTACK_LAB_COLLECTION", "pubmed_attack_lab")
+    source_collection = os.environ.get("PHARMAATTACK_SOURCE_COLLECTION", "pubmed")
+    lab_collection = os.environ.get("PHARMAATTACK_LAB_COLLECTION", "pubmed_attack_lab")
 
     output_json = Path(args.output_json)
     pdf_dir = output_json.parent / "pdfs"
@@ -434,7 +434,7 @@ def main() -> None:
             "source_collection": source_collection,
             "lab_collection": lab_collection,
             "ollama_base_url": env("OLLAMA_BASE_URL", "http://localhost:11434"),
-            "ollama_embed_model": env("OLLAMA_EMBED_MODEL", "nomic-embed-text"),
+            "ollama_embed_model": env("OLLAMA_EMBED_MODEL", "embeddinggemma"),
         },
         "explanation": (
             "A2 tests whether malicious content embedded in PDFs survives parsing, "

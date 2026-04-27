@@ -27,7 +27,7 @@ Requires PharmaHelp installed and `python -m pharma_help.ingestion.setup_kb` run
 export PHARMAHELP_ROOT=~/path/to/pharma_help
 export PHARMAHELP_CHROMA_DIR=~/path/to/pharma_help/data/chroma
 export OLLAMA_BASE_URL=http://localhost:11434
-export OLLAMA_EMBED_MODEL=nomic-embed-text
+export OLLAMA_EMBED_MODEL=embeddinggemma
 
 python pharma_attack/scripts/run_testbench.py --mode chroma --fresh \
   --output-dir artifacts/testbench_chroma

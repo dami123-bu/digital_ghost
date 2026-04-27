@@ -131,12 +131,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--source-collection",
         default=None,
-        help="Source Chroma collection to copy from. Default: env PHARMA_ATTACK_SOURCE_COLLECTION or pubmed.",
+        help="Source Chroma collection to copy from. Default: env PHARMAATTACK_SOURCE_COLLECTION or pubmed.",
     )
     parser.add_argument(
         "--lab-collection",
         default=None,
-        help="Isolated lab collection name. Default: env PHARMA_ATTACK_LAB_COLLECTION or pubmed_attack_lab.",
+        help="Isolated lab collection name. Default: env PHARMAATTACK_LAB_COLLECTION or pubmed_attack_lab.",
     )
     parser.add_argument(
         "--volume-count",

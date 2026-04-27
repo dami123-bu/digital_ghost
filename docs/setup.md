@@ -43,11 +43,14 @@ Edit `.env`:
 | `MCP_MODE` | `clean` or `poisoned`. Read by every MCP server at startup; flips tool descriptions and side-effect implementations atomically. Default: `clean`. |
 | `MCP_HOST` | Bind address for the MCP servers. Default `127.0.0.1`. |
 | `MCP_PORT` | Base port for the MCP `main_server`. Default `8000`. `mcp-fake` uses `MCP_PORT+1`; `mcp-confusion` uses `MCP_PORT+2`. |
-| `WORKSPACE_DIR` | Simulated victim filesystem the MCP tools operate on. Default `./workspace`. |
-| `RESULTS_DIR` | Where MCP attack evidence (`harvest.log`, run summaries) is written. Default `./results`. |
 | `OLLAMA_BASE_URL` | Default `http://localhost:11434`. |
 | `OLLAMA_LLM_MODEL` | `gemma3:270m`. Fast and runs on laptop. |
-| `OLLAMA_EMBED_MODEL` | `embeddinggemma`. |
+| `OLLAMA_EMBED_MODEL` | `embeddinggemma`. Pairs with the Gemma LLM family; 768-dim. |
+| `PUBMED_MAX_RESULTS` | Max abstracts fetched per drug during ingest. Default `50`. |
+| `RETRIEVER_TOP_K` | Top-K chunks returned by the retriever. Default `20`. |
+| `SIMILARITY_THRESHOLD` | Minimum cosine similarity for a chunk to be returned. Default `0.5`. |
+
+Path defaults (`data/`, `workspace/`, `results/`, ChromaDB store, drug list) are anchored to the project root by [config.py](../src/pharma_help/config.py) and don't need `.env` entries. Override `PHARMA_DATA_DIR`, `WORKSPACE_DIR`, `RESULTS_DIR`, `CHROMA_DIR`, or `DRUGS_FILE` only if you want to point them somewhere non-standard.
 
 `workspace/.env` is the **fake credential file** the MCP attack scenarios target — notably [a4 credential harvest](attacks/mcp/a4-tool-description-poisoning.md) ([test_3b](../pharma_attack/scenarios/test_3b.py)) and [a4 LIMS exfil](attacks/mcp/a4-tool-description-poisoning.md) ([test_3e](../pharma_attack/scenarios/test_3e.py)). The credentials are fake but the file must exist before those scenarios will produce harvest evidence. It is git-ignored.
 
@@ -96,8 +99,8 @@ UI at `http://localhost:8010` (set via `CHAINLIT_PORT` in `.env`).
 > **Note**: Chainlit binds 8010 so port 8000 stays free for the MCP `main_server`. Both can run side-by-side without flags. Override `CHAINLIT_PORT` in `.env` if 8010 is taken.
 
 > **Current limitations**:
-> - The chatbot agent uses mock retrieval (see [src/pharma_help/agents/tools.py](../src/pharma_help/agents/tools.py)). Real ChromaDB retrieval is chunk #1 in [PROJECT_PLAN.md](../PROJECT_PLAN.md).
-> - The agent does **not** connect to the MCP servers yet (chunk #2). Until that lands, MCP attacks land via the standalone scenario scripts in step 7 below, not through the Chainlit UI.
+> - Real ChromaDB retrieval lives in [src/pharma_help/agents/retrieval.py](../src/pharma_help/agents/retrieval.py) but is **not yet wired into the LangGraph agent**. The chatbot answers from Gemma alone with no retrieval grounding. Wiring it in is chunk #2 of [demo_plan.md](../demo_plan.md) / chunk #1 of [PROJECT_PLAN.md](../PROJECT_PLAN.md).
+> - The agent does **not** connect to the MCP servers yet (chunk #2 of PROJECT_PLAN.md). Until that lands, MCP attacks land via the standalone scenario scripts in step 7 below, not through the Chainlit UI.
 
 ## 7. Run the MCP servers (optional — for MCP attack work)
 

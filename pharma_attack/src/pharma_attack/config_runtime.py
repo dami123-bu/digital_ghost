@@ -35,7 +35,7 @@ def load_runtime_config() -> RuntimeConfig:
         pharmahelp_root=root,
         chroma_dir=discover_chroma_dir(root),
         ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
-        ollama_embed_model=os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text"),
+        ollama_embed_model=os.getenv("OLLAMA_EMBED_MODEL", "embeddinggemma"),
         source_collection=os.getenv("PHARMAATTACK_SOURCE_COLLECTION", "pubmed"),
         lab_collection=os.getenv("PHARMAATTACK_LAB_COLLECTION", "pubmed_attack_lab"),
     )

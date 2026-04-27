@@ -47,9 +47,9 @@ That's the demo.
 
 
 **1. Real RAG retrieval** 
-- File: [src/pharma_help/agents/tools.py](src/pharma_help/agents/tools.py)
-- Replace mock `retrieve_docs` with a real ChromaDB query against the `pubmed` collection
-- Return top-K chunks with title + snippet + metadata
+- File: [src/pharma_help/agents/retrieval.py](src/pharma_help/agents/retrieval.py)
+- `retrieve_docs` queries the `pubmed` ChromaDB collection
+- Returns top-K `RetrievedDoc` (id, title, content, score, metadata) — see [src/pharma_help/agents/retrieved_doc.py](src/pharma_help/agents/retrieved_doc.py)
 - Smoke-test from a Python REPL before touching the agent
 
 **2. Wire retrieval into the LangGraph agent** 

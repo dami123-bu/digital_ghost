@@ -23,14 +23,14 @@ For the attack lab, `pharma_attack/chroma_lab.py` clones benign records from `pu
 
 ## Storage
 
-ChromaDB persistent on disk at `data/chroma/`. Embeddings via Ollama `nomic-embed-text`. Chunking: 512-token windows, 64-token overlap (configurable).
+ChromaDB persistent on disk at `data/chroma/`. Embeddings via Ollama `embeddinggemma`. Chunking: 512-token windows, 64-token overlap (configurable).
 
-Tunables live in [src/pharma_help/config.py](../../src/pharma_help/config.py). All paths are env-var driven; defaults are relative to the project root (the cwd from which Chainlit and the ingestion module are launched).
+Tunables live in [src/pharma_help/config.py](../../src/pharma_help/config.py). All paths are env-var driven; defaults resolve relative to the project root (the directory containing `pyproject.toml`, found by searching upward from `config.py`). cwd-independent.
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server |
-| `OLLAMA_EMBED_MODEL` | `nomic-embed-text` | Embedding model |
+| `OLLAMA_EMBED_MODEL` | `embeddinggemma` | Embedding model |
 | `CHROMA_COLLECTION_PUBMED` | `pubmed` | Collection name |
 | `RETRIEVER_TOP_K` | `20` | Top-K candidates per query |
 | `SIMILARITY_THRESHOLD` | `0.5` | Minimum cosine similarity |
@@ -63,7 +63,7 @@ Resources: `kb://collections`, `kb://stats`. Both leak inventory and statistics 
 data/drugs.txt
     → python -m pharma_help.ingestion.setup_kb
     → NCBI E-utilities (httpx)
-    → embed via nomic-embed-text
+    → embed via embeddinggemma
     → upsert to data/chroma/ pubmed collection
 ```
 

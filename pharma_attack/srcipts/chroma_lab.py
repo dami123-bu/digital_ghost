@@ -120,9 +120,9 @@ def load_runtime_config(
     - PHARMAHELP_CHROMA_DIR: direct path to target Chroma directory
     - PHARMAHELP_ROOT: path to target PharmaHelp repo
     - OLLAMA_BASE_URL: default http://localhost:11434
-    - OLLAMA_EMBED_MODEL: default nomic-embed-text
-    - PHARMA_ATTACK_SOURCE_COLLECTION: default pubmed
-    - PHARMA_ATTACK_LAB_COLLECTION: default pubmed_attack_lab
+    - OLLAMA_EMBED_MODEL: default embeddinggemma
+    - PHARMAATTACK_SOURCE_COLLECTION: default pubmed
+    - PHARMAATTACK_LAB_COLLECTION: default pubmed_attack_lab
     """
 
     chroma_dir: Path | None = None
@@ -139,12 +139,12 @@ def load_runtime_config(
     return RuntimeConfig(
         chroma_dir=chroma_dir,
         ollama_base_url=_env("OLLAMA_BASE_URL", "http://localhost:11434") or "http://localhost:11434",
-        ollama_embed_model=_env("OLLAMA_EMBED_MODEL", "nomic-embed-text") or "nomic-embed-text",
+        ollama_embed_model=_env("OLLAMA_EMBED_MODEL", "embeddinggemma") or "embeddinggemma",
         source_collection=source_collection
-        or _env("PHARMA_ATTACK_SOURCE_COLLECTION", "pubmed")
+        or _env("PHARMAATTACK_SOURCE_COLLECTION", "pubmed")
         or "pubmed",
         lab_collection=lab_collection
-        or _env("PHARMA_ATTACK_LAB_COLLECTION", "pubmed_attack_lab")
+        or _env("PHARMAATTACK_LAB_COLLECTION", "pubmed_attack_lab")
         or "pubmed_attack_lab",
     )
 
