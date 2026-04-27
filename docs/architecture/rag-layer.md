@@ -25,7 +25,7 @@ For the attack lab, `pharma_attack/chroma_lab.py` clones benign records from `pu
 
 ChromaDB persistent on disk at `data/chroma/`. Embeddings via Ollama `nomic-embed-text`. Chunking: 512-token windows, 64-token overlap (configurable).
 
-Tunables live in `config.py`:
+Tunables live in [src/pharma_help/config.py](../../src/pharma_help/config.py). All paths are env-var driven; defaults are relative to the project root (the cwd from which scripts/Chainlit are launched).
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -34,6 +34,9 @@ Tunables live in `config.py`:
 | `CHROMA_COLLECTION_PUBMED` | `pubmed` | Collection name |
 | `RETRIEVER_TOP_K` | `20` | Top-K candidates per query |
 | `SIMILARITY_THRESHOLD` | `0.5` | Minimum cosine similarity |
+| `PHARMA_DATA_DIR` | `data` | Root of on-disk data; `CHROMA_DIR` and `DRUGS_FILE` derive from it |
+| `CHROMA_DIR` | `data/chroma` | ChromaDB persistent client path |
+| `DRUGS_FILE` | `data/drugs.txt` | Drug list seeded into the `pubmed` collection |
 
 ---
 

@@ -10,7 +10,7 @@ import asyncio
 
 from fastmcp import Client
 
-import config
+from pharma_help import config
 
 
 async def main() -> None:

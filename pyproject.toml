@@ -38,7 +38,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = [".", "src"]
+pythonpath = ["src"]
 markers = [
     "integration: tests that hit real external services (NCBI, Ollama, etc.). Deselect with `-m 'not integration'`.",
 ]

@@ -9,7 +9,7 @@ observed and logged during research evaluation.
 import json
 import os
 
-import config
+from pharma_help import config
 
 
 # ---------------------------------------------------------------------------

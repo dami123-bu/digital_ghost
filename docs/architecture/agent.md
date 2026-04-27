@@ -26,7 +26,7 @@ The LangGraph agent is the core of the target system. It receives the user's nat
 
 - One LangGraph node (`generate`).
 - Tools come from the hardcoded mocks in [tools.py](../../src/pharma_help/agents/tools.py), not from real ChromaDB or MCP discovery.
-- LLM is `gemma3:270m` per [config.py](../../config.py).
+- LLM is `gemma3:270m` per [config.py](../../src/pharma_help/config.py).
 - The Chainlit app ([app.py](../../app.py)) wires this graph end-to-end, so a user can chat — but every answer is grounded in mock data, not real sources.
 
 **Nothing is wired yet.** The wiring chunks are in [PROJECT_PLAN.md](../../PROJECT_PLAN.md):
@@ -70,7 +70,7 @@ Logs land in `results/mcp_calls.jsonl`. Not yet implemented — comes in alongsi
 
 `gemma3:270m` via Ollama. Picked for two reasons:
 - Fast on laptop hardware — keeps the demo responsive and avoids needing GPU access for development.
-- Already configured in [config.py](../../config.py) and pulled on the team's machines.
+- Already configured in [config.py](../../src/pharma_help/config.py) and pulled on the team's machines.
 
 Small model means weaker reasoning than larger options, but for the attack research the model size doesn't materially change ASR results — most attacks succeed because the model trusts retrieved context, not because the model is dumb.
 

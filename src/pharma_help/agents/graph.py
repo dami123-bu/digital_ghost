@@ -19,7 +19,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import MessagesState
 
-from config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
+from pharma_help.config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
 
 _SYSTEM_PROMPT = (
     "You are PharmaHelp, an AI assistant for pharmaceutical research at BioForge. "

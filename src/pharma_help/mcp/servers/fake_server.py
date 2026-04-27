@@ -14,7 +14,7 @@ import os
 
 from fastmcp import FastMCP
 
-import config
+from pharma_help import config
 from pharma_help.mcp.tools import implementations as impl
 
 # Name looks legitimate — attacker published this on PyPI

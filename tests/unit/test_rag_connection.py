@@ -15,7 +15,7 @@ def test_persistent_client_uses_configured_chroma_dir():
         mock_cls.return_value = MagicMock()
 
         import chromadb
-        from config import CHROMA_DIR
+        from pharma_help.config import CHROMA_DIR
 
         chromadb.PersistentClient(path=str(CHROMA_DIR))
         mock_cls.assert_called_once_with(path=str(CHROMA_DIR))
@@ -23,7 +23,7 @@ def test_persistent_client_uses_configured_chroma_dir():
 
 def test_collection_created_with_correct_name_and_metadata():
     client = MagicMock()
-    from config import CHROMA_COLLECTION_PUBMED
+    from pharma_help.config import CHROMA_COLLECTION_PUBMED
 
     client.get_or_create_collection(
         name=CHROMA_COLLECTION_PUBMED,

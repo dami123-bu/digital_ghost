@@ -7,7 +7,7 @@ Uses a real ephemeral ChromaDB client — no Ollama required.
 import pytest
 import chromadb
 
-from config import CHROMA_COLLECTION_PUBMED
+from pharma_help.config import CHROMA_COLLECTION_PUBMED
 
 SAMPLE_ARTICLES = [
     {"pmid": "11111111", "drug": "imatinib", "title": "Imatinib in CML", "abstract": "Imatinib inhibits BCR-ABL."},
@@ -38,7 +38,7 @@ def populated_collection(ephemeral_collection):
 
 
 def test_persistent_client_creates_empty_collection():
-    import config
+    from pharma_help import config
     client = chromadb.PersistentClient(path=str(config.CHROMA_DIR))
     collection = client.get_or_create_collection(
         name=CHROMA_COLLECTION_PUBMED,

@@ -10,12 +10,10 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 import httpx
 import chromadb
 from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
-from config import CHROMA_DIR, CHROMA_COLLECTION_PUBMED, NCBI_API_KEY, PUBMED_MAX_RESULTS, OLLAMA_BASE_URL, OLLAMA_EMBED_MODEL
+from pharma_help.config import CHROMA_DIR, CHROMA_COLLECTION_PUBMED, NCBI_API_KEY, PUBMED_MAX_RESULTS, OLLAMA_BASE_URL, OLLAMA_EMBED_MODEL
 
 DRUGS_FILE = Path(__file__).parent / "drugs.txt"
 ARTICLES_PER_DRUG = 10

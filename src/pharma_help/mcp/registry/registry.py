@@ -5,7 +5,7 @@ Servers import from here to stay DRY.
 
 from typing import Callable
 
-import config
+from pharma_help import config
 from pharma_help.mcp.tools.descriptions.clean    import DESCRIPTIONS as CLEAN
 from pharma_help.mcp.tools.descriptions.poisoned import DESCRIPTIONS as POISONED
 from pharma_help.mcp.tools import implementations as impl
