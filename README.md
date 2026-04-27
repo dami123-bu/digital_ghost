@@ -1,101 +1,57 @@
 # pharma_help
 
-**Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious
-External Data Sources**
+**Context Poisoning and Indirect Prompt Injection in Agentic AI: Measuring Vulnerabilities from Malicious External Data Sources.**
 
-Academic security research project — EC521 Cybersecurity, Boston University, Spring 2026.
-
----
-
-## Overview
-
-This is for a project that examines security and defenses for an agentic system. We want to identify attack surfaces
-and vectors - we will collect metrics. There will be a target application (PharmaHelp), as well as an 
-attack service (PharmaAttack). PharmaAttack that will attempt to attack PharmaHelp.
-
-A fictitious biotech company BioForge needs an application to help with managing research documents. The proposed
-app PharmaHelp will allow users to browse internal documents as well as public databases (Pubmed). This repository will
-be implemented as a RAG. The app allows - 
-- User can upload research documents 
-- User can make natural language queries
-- The app will generate a synthesis summary document. The synthesis, along with supporting documents
-will be made available to the user.
-
-This project is about finding out how badly an agentic AI system can be manipulated through its own data sources. 
-We attack it from three angles — the RAG pipeline, the agentic reasoning loops, and the MCP layer, and measure how far the damage goes.
-
-##TBD : MCP/OpenClaw 
-
-## Technology
-
-### PharmaHelp
-Implemented in Python 3.12. ChromaDB for the vector store. Ollama for LLM inference (`gemma3:270m`) and embeddings (`nomic-embed-text`). LangGraph for the agent (multi-turn memory via `MemorySaver`). Chainlit for the chat UI.
-TBD: RAG retrieval node, MCP/OpenClaw
+EC521 Cybersecurity, Boston University, Spring 2026.
 
 ---
 
-## Setup
+## What this is
 
-IMPORTANT: Follow the steps in [SETUP.md](SETUP.md) exactly the first time you clone this project.
+pharma_help has two halves:
 
-**Python 3.12 is required.** The app will not run on Python 3.13 or 3.14 due to async compatibility issues with Chainlit's dependencies.
+- **PharmaHelp** — the **target system**. A pharmaceutical research assistant for a fictitious biotech (BioForge). Built on Chainlit + LangGraph + Gemma (`gemma3:270m`) + ChromaDB + an MCP tool layer.
+- **PharmaAttack** — the **attack service**. Tries to manipulate PharmaHelp through every available surface: RAG content, MCP tools, agent reasoning, the LLM itself, the Chainlit UI.
 
-Subsequently, make sure Ollama is running before executing any scripts.
+We measure attack success rate, defense detection rate, latency overhead, and persistence. Then we layer defenses and re-measure.
 
 ---
 
-## Testing Methodology
+## Documentation
 
-### Phases
+All design and operational docs live under [docs/](docs/). Start there.
 
-1. Baseline measurement on clean system
-2. Attack injection with malicious documents (50–100 test corpus)
-3. Defense evaluation — apply defenses and re-run same corpus
-4. Persistence testing across turns and sessions
-
-### Metrics
-
-| Metric | Description |
+| Where to start | Doc |
 |---|---|
-| **Attack Success Rate (ASR)** | How often malicious content in the RAG or uploaded documents successfully manipulates the LLM's output or behavior |
-| **Detection Rate** | How accurately defenses identify poisoned documents — including false positive and false negative rates |
-| **Latency Overhead** | The performance cost of running defenses (input sanitization, output monitoring, trust scoring) relative to a clean baseline |
-| **Persistence Duration** | How long a poisoned context window continues to affect subsequent queries, across turns and across sessions |
-| **Injection Scope** | Whether a successful injection is limited to a single response or escalates to tool calls, data writes, or downstream agent actions |
-| **Retrieval Bias** | The degree to which adversarial documents displace benign documents in top-k retrieval results |
+| What the project is and how it fits together | [docs/architecture/overview.md](docs/architecture/overview.md) |
+| What's in scope and what's out | [SCOPE.md](SCOPE.md) |
+| First-time setup | [docs/setup.md](docs/setup.md) |
+| Running attacks | [docs/guides/running-attacks.md](docs/guides/running-attacks.md) |
+| Adding a new attack | [docs/guides/adding-an-attack.md](docs/guides/adding-an-attack.md) |
+| Master attack catalog | [docs/attacks/ATTACK_INDEX.md](docs/attacks/ATTACK_INDEX.md) |
+| Reference PDFs (idea source, not spec) | [docs/](docs/) |
+| Project plan and chunks | [TODO.md](TODO.md) |
 
 ---
 
-## Claude Code Skills
-
-The `.claude/skills/` directory contains project-specific instructions that guide Claude Code (the AI assistant) when working in this repo. If you're using Claude Code, it will automatically follow these rules — you don't need to do anything manually.
-
-| Skill | What it does |
-|-------------|--------------|
-| `architecture` | Best practices for Python RAG, MCP, and agentic AI application architecture — covers ingestion, retrieval, agent design, and module structure |
-| `testing` | Guidelines for writing tests in the pharma_help project |
-| `attack-spec` | Define a new attack vector for the pharma_help experiment |
-| `documentation` | Write or update documentation for a module, function, or component |
-| `review` | Review Python code for general quality — repeated code, overly long methods, naming, file placement, and LangChain/RAG patterns. Run with `/review` |
-
-
-If you're not using Claude Code, you can read these files directly — they contain useful context about how the project is structured and what conventions to follow.
-
----
-
-## Running the UI
-
-Make sure Ollama is running, then:
+## Quick start
 
 ```bash
+# Setup (full instructions: docs/setup.md)
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -e .
+cp .env.example .env
+ollama pull nomic-embed-text gemma3:270m
+python scripts/setup_kb.py
+
+# Run the chatbot
 chainlit run app.py
 ```
 
-The UI will be available at `http://localhost:8000`.
-
 ---
 
-## Read the following for more details
+## Project status
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — system design, data flow, agent trust model, attack surfaces
-- [RAG.md](RAG.md) — how the RAG pipeline and agents work
+The target system is partially built (Chainlit + ChromaDB seeded; MCP servers in flight; agent uses mocks). Attack streams have working RAG and MCP scaffolding. Agent / LLM / Chatbot attack surfaces are not yet started.
+
+See [TODO.md](TODO.md) for the six-phase plan.

@@ -60,6 +60,9 @@ htmlcov/
 
 # Dami's stuff
 my_eyes/
+bak/
+# personal notes
+DAMI_RULES.md
 
 # Claude Code local settings
 .claude/settings.local.json
