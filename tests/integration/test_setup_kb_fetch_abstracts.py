@@ -1,5 +1,5 @@
 """
-Integration tests for scripts.setup_kb.fetch_abstracts.
+Integration tests for pharma_help.ingestion.setup_kb.fetch_abstracts.
 
 Hits the real NCBI E-utilities efetch endpoint. Requires network access.
 Deselect with `pytest -m 'not integration'`.
@@ -15,7 +15,7 @@ upstream flakiness is not a regression in our code.
 import httpx
 import pytest
 
-from scripts import setup_kb
+from pharma_help.ingestion import setup_kb
 
 pytestmark = pytest.mark.integration
 

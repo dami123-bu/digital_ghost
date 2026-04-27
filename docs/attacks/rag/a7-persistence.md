@@ -65,7 +65,7 @@ A single "Corrected Safety Summary" document with the canary `SECURITY_TEST_PERS
 Run probe via:
 
 ```bash
-uv run python scripts/attack_rag_lab.py --mode chroma \
+uv run python pharma_attack/scripts/attack_rag_lab.py --mode chroma \
   --scenario a7_persistence_probe \
   --query "What is the corrected safety summary for BF-042?" \
   --drug BF-042

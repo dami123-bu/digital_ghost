@@ -59,13 +59,13 @@ Full design in [Attack Schematics PDF](../../PharmaHelp%20MCP%20Attack%20Schemat
 
 ```bash
 # Offline (no Chroma/Ollama)
-uv run python scripts/attack_rag_lab.py --mode offline \
+uv run python pharma_attack/scripts/attack_rag_lab.py --mode offline \
   --scenario a1a_passive_rag_poison \
   --query "What is the safety profile and IC50 of BF-042?" \
   --drug BF-042
 
 # Chroma-backed (requires populated pubmed collection)
-uv run python scripts/attack_rag_lab.py --mode chroma \
+uv run python pharma_attack/scripts/attack_rag_lab.py --mode chroma \
   --scenario a1a_passive_rag_poison --fresh \
   --query "What is the safety profile and IC50 of BF-042?" \
   --drug BF-042

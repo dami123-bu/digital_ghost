@@ -63,7 +63,7 @@ That's the demo.
 **3. Inject a poisoned doc** 
 - Use existing `build_a1a_passive_poison()` from [pharma_attack/src/pharma_attack/payloads.py](pharma_attack/src/pharma_attack/payloads.py)
 - One-shot script: import the builder, get the BF-042 poison doc, upsert it directly into the `pubmed` collection (or a new `internal_docs` collection that retrieval also reads)
-- Save the script to `scripts/demo_inject_poison.py` so it's reproducible
+- Save the script to `pharma_attack/scripts/demo_inject_poison.py` so it's reproducible
 - Verify with a query: the doc should be in top-K
 
 **4. Test end-to-end** 

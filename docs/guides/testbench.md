@@ -15,13 +15,13 @@ The testbench is **not** just attack code — it includes the harness, metrics, 
 Requires no PharmaHelp, Chroma, or Ollama. Deterministic. Use for CI and fast iteration.
 
 ```bash
-python scripts/run_testbench.py --mode offline \
+python pharma_attack/scripts/run_testbench.py --mode offline \
   --output-dir artifacts/testbench_offline
 ```
 
 ### Chroma mode
 
-Requires PharmaHelp installed and `scripts/setup_kb.py` run.
+Requires PharmaHelp installed and `python -m pharma_help.ingestion.setup_kb` run.
 
 ```bash
 export PHARMAHELP_ROOT=~/path/to/pharma_help
@@ -29,7 +29,7 @@ export PHARMAHELP_CHROMA_DIR=~/path/to/pharma_help/data/chroma
 export OLLAMA_BASE_URL=http://localhost:11434
 export OLLAMA_EMBED_MODEL=nomic-embed-text
 
-python scripts/run_testbench.py --mode chroma --fresh \
+python pharma_attack/scripts/run_testbench.py --mode chroma --fresh \
   --output-dir artifacts/testbench_chroma
 ```
 
@@ -38,7 +38,7 @@ Chroma mode copies benign records from `pubmed` into `pubmed_attack_lab`, inject
 ## Running one scenario
 
 ```bash
-python scripts/attack_rag_lab.py \
+python pharma_attack/scripts/attack_rag_lab.py \
   --mode offline \
   --scenario a1a_passive_rag_poison \
   --query "What is the safety profile and IC50 of BF-042?" \
@@ -50,7 +50,7 @@ python scripts/attack_rag_lab.py \
 Chroma-backed:
 
 ```bash
-python scripts/attack_rag_lab.py \
+python pharma_attack/scripts/attack_rag_lab.py \
   --mode chroma --fresh \
   --scenario a1a_passive_rag_poison \
   --query "What is the safety profile and IC50 of BF-042?" \
@@ -86,7 +86,7 @@ Interpretation:
 ## Resetting the Chroma lab collection
 
 ```bash
-python scripts/reset_attack_lab.py
+python pharma_attack/scripts/reset_attack_lab.py
 ```
 
 Deletes only the lab collection, not the source `pubmed`.

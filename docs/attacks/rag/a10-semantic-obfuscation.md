@@ -98,7 +98,7 @@ For each technique: run the same paired primary attack with defense ON vs. defen
 Built by `build_a10_obfuscated_payload(drug)` in [pharma_attack/payloads.py](../../../pharma_attack/src/pharma_attack/payloads.py). Carries the canary `SECURITY_TEST_OBFUSCATED`.
 
 ```bash
-uv run python scripts/attack_rag_lab.py --mode chroma --fresh \
+uv run python pharma_attack/scripts/attack_rag_lab.py --mode chroma --fresh \
   --scenario a10_semantic_obfuscation \
   --query "How should BF-042 safety synthesis be phrased?" \
   --drug BF-042

@@ -8,14 +8,12 @@ per drug via NCBI E-utilities, and upserts them into the configured collection.
 
 import sys
 import time
-from pathlib import Path
 
 import httpx
 import chromadb
 from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
-from pharma_help.config import CHROMA_DIR, CHROMA_COLLECTION_PUBMED, NCBI_API_KEY, PUBMED_MAX_RESULTS, OLLAMA_BASE_URL, OLLAMA_EMBED_MODEL
+from pharma_help.config import CHROMA_DIR, CHROMA_COLLECTION_PUBMED, DRUGS_FILE, NCBI_API_KEY, PUBMED_MAX_RESULTS, OLLAMA_BASE_URL, OLLAMA_EMBED_MODEL
 
-DRUGS_FILE = Path(__file__).parent / "drugs.txt"
 ARTICLES_PER_DRUG = 10
 NCBI_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
@@ -101,10 +99,6 @@ def main() -> None:
         embedding_function=embed_fn,
         metadata={"hnsw:space": "cosine"},
     )
-
-    if collection.count() > 0:
-        print(f"Collection '{CHROMA_COLLECTION_PUBMED}' already has {collection.count()} documents. Skipping setup.")
-        sys.exit(0)
 
     total = 0
     for drug in drugs:

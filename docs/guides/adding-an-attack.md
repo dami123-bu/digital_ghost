@@ -77,7 +77,7 @@ Wire the payload into the runner — never bury scenario logic in CLI flags.
 For RAG:
 - Add to `payloads_for_scenario()` in [payloads.py](../../pharma_attack/src/pharma_attack/payloads.py).
 - Add a default query to `DEFAULT_OFFLINE_SCENARIOS` and/or `DEFAULT_CHROMA_SCENARIOS` in [testbench.py](../../pharma_attack/src/pharma_attack/testbench.py).
-- Add the scenario name to the CLI in [scripts/attack_rag_lab.py](../../pharma_attack/scripts/attack_rag_lab.py).
+- Add the scenario name to the CLI in [pharma_attack/scripts/attack_rag_lab.py](../../pharma_attack/scripts/attack_rag_lab.py).
 
 For MCP:
 - Add the description to [descriptions/poisoned.py](../../src/pharma_help/mcp/tools/descriptions/poisoned.py).

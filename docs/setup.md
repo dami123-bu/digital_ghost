@@ -76,10 +76,10 @@ ollama list
 ## 5. Seed the knowledge base
 
 ```bash
-python scripts/setup_kb.py
+python -m pharma_help.ingestion.setup_kb
 ```
 
-This is idempotent — skips if `pubmed` is already populated. Reads `scripts/drugs.txt`, fetches abstracts from PubMed, embeds via `embeddinggemma`, upserts into ChromaDB at `data/chroma/`.
+Reads `data/drugs.txt`, fetches abstracts from PubMed, embeds via `embeddinggemma`, upserts into ChromaDB at `data/chroma/`. Re-runs overwrite by PMID (no duplicates), so it's safe to re-run after editing `data/drugs.txt`.
 
 > **Switching embedding models?** ChromaDB stores vectors at a fixed dimension. If you change `OLLAMA_EMBED_MODEL` after a previous ingest, delete `data/chroma/` first (`rm -rf data/chroma`) and re-run this script — otherwise queries will fail or return garbage.
 

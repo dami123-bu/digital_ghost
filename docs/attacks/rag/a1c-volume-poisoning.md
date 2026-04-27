@@ -35,7 +35,7 @@ Generates `count` keyword-dense abstracts about the targeted compound, each with
 **Built**. Run via:
 
 ```bash
-uv run python scripts/attack_rag_lab.py --mode chroma --fresh \
+uv run python pharma_attack/scripts/attack_rag_lab.py --mode chroma --fresh \
   --scenario a1c_volume_poison \
   --query "What is known about BF-042 oncology safety and efficacy?" \
   --drug BF-042

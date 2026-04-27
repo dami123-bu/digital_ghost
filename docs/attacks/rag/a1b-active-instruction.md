@@ -52,7 +52,7 @@ In a real attack the embedded instruction would tell the agent to add a confiden
 **Built**. Run via:
 
 ```bash
-uv run python scripts/attack_rag_lab.py --mode offline \
+uv run python pharma_attack/scripts/attack_rag_lab.py --mode offline \
   --scenario a1b_active_instruction_poison \
   --query "Summarize the clinical update for BF-099." \
   --drug BF-099

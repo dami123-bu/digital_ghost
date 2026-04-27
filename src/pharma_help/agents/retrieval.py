@@ -38,7 +38,7 @@ def retrieve_docs(query: str, k: int = config.RETRIEVER_TOP_K) -> list[Retrieved
     if collection.count() == 0:
         raise RuntimeError(
             f"ChromaDB collection '{config.CHROMA_COLLECTION_PUBMED}' is empty. "
-            "Run `python scripts/setup_kb.py` to seed it."
+            "Run `python -m pharma_help.ingestion.setup_kb` to seed it."
         )
 
     result = collection.query(

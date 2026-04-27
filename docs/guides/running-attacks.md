@@ -17,18 +17,18 @@ Run from the [pharma_attack/](../../pharma_attack/) testbench. Two modes:
 
 ```bash
 # Offline batch run — every RAG scenario
-uv run python scripts/run_testbench.py --mode offline \
+uv run python pharma_attack/scripts/run_testbench.py --mode offline \
   --output-dir artifacts/testbench_offline
 
-# Chroma batch run — realistic, requires setup_kb.py first
-uv run python scripts/run_testbench.py --mode chroma --fresh \
+# Chroma batch run — realistic, requires `python -m pharma_help.ingestion.setup_kb` first
+uv run python pharma_attack/scripts/run_testbench.py --mode chroma --fresh \
   --output-dir artifacts/testbench_chroma
 ```
 
 Single-scenario:
 
 ```bash
-uv run python scripts/attack_rag_lab.py \
+uv run python pharma_attack/scripts/attack_rag_lab.py \
   --mode offline \
   --scenario a1a_passive_rag_poison \
   --query "What is the safety profile and IC50 of BF-042?" \
@@ -41,7 +41,7 @@ Replace `--scenario` with: `stub_keyword_hijack`, `a1a_passive_rag_poison`, `a1b
 
 Reset the lab collection:
 ```bash
-uv run python scripts/reset_attack_lab.py
+uv run python pharma_attack/scripts/reset_attack_lab.py
 ```
 This deletes only the lab collection, not the source `pubmed`.
 
@@ -157,4 +157,4 @@ Check `MCP_MODE=poisoned` is set in `.env`. The log only writes when poisoned im
 If `workspace/compound_approval.py` or `workspace/.env` are missing, the a4-code-injection and a4-credential-harvest scenarios will not work. Check that `workspace/` exists at the project root, or set `WORKSPACE_DIR` in `.env`.
 
 **ChromaDB empty in attack runs**
-Run `python scripts/setup_kb.py` first. The Chroma-mode RAG attacks clone from the populated `pubmed` collection.
+Run `python -m pharma_help.ingestion.setup_kb` first. The Chroma-mode RAG attacks clone from the populated `pubmed` collection.

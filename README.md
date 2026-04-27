@@ -42,7 +42,7 @@ python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e .
 cp .env.example .env
 ollama pull nomic-embed-text gemma3:270m
-python scripts/setup_kb.py
+python -m pharma_help.ingestion.setup_kb
 
 # Run the chatbot
 chainlit run app.py

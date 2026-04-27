@@ -38,7 +38,7 @@ Title and body repeat exact query terms (`tamoxifen used for`, `dosage`, `side e
 
 Run:
 ```bash
-uv run python scripts/attack_rag_lab.py --scenario stub_keyword_hijack \
+uv run python pharma_attack/scripts/attack_rag_lab.py --scenario stub_keyword_hijack \
   --query "What is tamoxifen used for?" --drug tamoxifen
 ```
 

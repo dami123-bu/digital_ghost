@@ -481,7 +481,7 @@ def seed_lab_collection(
     except Exception as exc:
         raise RuntimeError(
             f"Could not read source collection '{source_collection_name}' from {config.chroma_dir}. "
-            "Make sure PharmaHelp has been set up and scripts/setup_kb.py has been run."
+            "Make sure PharmaHelp has been set up and `python -m pharma_help.ingestion.setup_kb` has been run."
         ) from exc
 
     docs = source_data.get("documents") or []

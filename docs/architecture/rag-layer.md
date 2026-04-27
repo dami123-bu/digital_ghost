@@ -12,7 +12,7 @@ In MCP terms, the RAG layer is **Server 2 — Knowledge Base** ([mcp-layer.md](m
 
 | Collection | Source | Trust |
 |---|---|---|
-| `pubmed` | Seeded by `scripts/setup_kb.py` from NCBI E-utilities. PubMed abstracts for the drugs in `scripts/drugs.txt`. | Trusted external. **Not** an attack target — the project does not poison PubMed. |
+| `pubmed` | Seeded by `pharma_help.ingestion.setup_kb` from NCBI E-utilities. PubMed abstracts for the drugs in `data/drugs.txt`. | Trusted external. **Not** an attack target — the project does not poison PubMed. |
 | `internal_docs` | User-uploaded PDFs via the Chainlit UI. | **Untrusted**. Primary RAG attack surface. |
 
 The split is intentional: `pubmed` provides a stable baseline, `internal_docs` is where attackers plant payloads.
@@ -25,7 +25,7 @@ For the attack lab, `pharma_attack/chroma_lab.py` clones benign records from `pu
 
 ChromaDB persistent on disk at `data/chroma/`. Embeddings via Ollama `nomic-embed-text`. Chunking: 512-token windows, 64-token overlap (configurable).
 
-Tunables live in [src/pharma_help/config.py](../../src/pharma_help/config.py). All paths are env-var driven; defaults are relative to the project root (the cwd from which scripts/Chainlit are launched).
+Tunables live in [src/pharma_help/config.py](../../src/pharma_help/config.py). All paths are env-var driven; defaults are relative to the project root (the cwd from which Chainlit and the ingestion module are launched).
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -60,8 +60,8 @@ Resources: `kb://collections`, `kb://stats`. Both leak inventory and statistics 
 ### Setup (one-time)
 
 ```
-scripts/drugs.txt
-    → scripts/setup_kb.py
+data/drugs.txt
+    → python -m pharma_help.ingestion.setup_kb
     → NCBI E-utilities (httpx)
     → embed via nomic-embed-text
     → upsert to data/chroma/ pubmed collection
