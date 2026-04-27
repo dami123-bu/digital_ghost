@@ -77,7 +77,7 @@ Both classes are valid and both are built. They sit in different rows of [ATTACK
 
 ## What needs wiring
 
-The MCP servers run, but **the chatbot doesn't connect to them**. Right now the test scripts in [scripts/scenarios/](../../scripts/scenarios/) hit the servers directly. To make MCP attacks land on the real chatbot:
+The MCP servers run, but **the chatbot doesn't connect to them**. Right now the test scripts in [pharma_attack/scenarios/](../../pharma_attack/scenarios/) hit the servers directly. To make MCP attacks land on the real chatbot:
 
 1. Add an MCP client to the LangGraph agent.
 2. Agent connects to `main_server` (port 8000) at startup, discovers tools.

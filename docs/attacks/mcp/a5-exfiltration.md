@@ -58,7 +58,7 @@ The current MCP code implements **a5 as 3D**, against `submit_lab_request` inste
 Run via:
 ```bash
 MCP_MODE=poisoned uv run mcp-server
-uv run python scripts/scenarios/test_3d.py
+uv run python pharma_attack/scenarios/test_3d.py
 ```
 
 Evidence in `results/harvest.log`:

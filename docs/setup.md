@@ -49,7 +49,7 @@ Edit `.env`:
 | `OLLAMA_LLM_MODEL` | `gemma3:270m`. Fast and runs on laptop. |
 | `OLLAMA_EMBED_MODEL` | `embeddinggemma`. |
 
-`workspace/.env` is the **fake credential file** the MCP attack scenarios target — notably [a4 credential harvest](attacks/mcp/a4-tool-description-poisoning.md) ([test_3b](../scripts/scenarios/test_3b.py)) and [a4 LIMS exfil](attacks/mcp/a4-tool-description-poisoning.md) ([test_3e](../scripts/scenarios/test_3e.py)). The credentials are fake but the file must exist before those scenarios will produce harvest evidence. It is git-ignored.
+`workspace/.env` is the **fake credential file** the MCP attack scenarios target — notably [a4 credential harvest](attacks/mcp/a4-tool-description-poisoning.md) ([test_3b](../pharma_attack/scenarios/test_3b.py)) and [a4 LIMS exfil](attacks/mcp/a4-tool-description-poisoning.md) ([test_3e](../pharma_attack/scenarios/test_3e.py)). The credentials are fake but the file must exist before those scenarios will produce harvest evidence. It is git-ignored.
 
 ### Getting an NCBI API key
 
@@ -101,13 +101,13 @@ UI at `http://localhost:8010` (set via `CHAINLIT_PORT` in `.env`).
 
 ## 7. Run the MCP servers (optional — for MCP attack work)
 
-The chatbot does not yet connect to MCP (see [PROJECT_PLAN.md](../PROJECT_PLAN.md) chunk #2). You only need the MCP servers running to execute the attack scenarios under [scripts/scenarios/](../scripts/scenarios/) or follow [guides/running-attacks.md](guides/running-attacks.md).
+The chatbot does not yet connect to MCP (see [PROJECT_PLAN.md](../PROJECT_PLAN.md) chunk #2). You only need the MCP servers running to execute the attack scenarios under [pharma_attack/scenarios/](../pharma_attack/scenarios/) or follow [guides/running-attacks.md](guides/running-attacks.md).
 
 Three servers, each in its own terminal:
 
 | Server | Port | Command | Purpose |
 |---|---|---|---|
-| main | 8000 | `MCP_MODE=poisoned uv run mcp-server` | a4 variants 3A/3B/3D/3E + a12 ([3G](../scripts/scenarios/test_3g.py)) |
+| main | 8000 | `MCP_MODE=poisoned uv run mcp-server` | a4 variants 3A/3B/3D/3E + a12 ([3G](../pharma_attack/scenarios/test_3g.py)) |
 | fake | 8001 | `uv run mcp-fake` | a4 supply-chain variant (3C) — always poisoned |
 | confusion | 8002 | `uv run mcp-confusion` | a11 tool-name confusion (3F) |
 
@@ -125,7 +125,7 @@ Evidence from poisoned tool calls lands in `results/harvest.log`. The directory 
 
 - **`ModuleNotFoundError: fastmcp`** — re-run `pip install -e .` (or `uv sync`). `fastmcp` is in [pyproject.toml](../pyproject.toml) but a stale venv from before that dep was added will miss it.
 - **Port already in use** — set `MCP_PORT=8020` (or any free port). The fake/confusion servers will follow at +1/+2.
-- **`workspace/.env` missing** — [test_3b](../scripts/scenarios/test_3b.py) and [test_3e](../scripts/scenarios/test_3e.py) need it. Re-run the `cp` from step 3.
+- **`workspace/.env` missing** — [test_3b](../pharma_attack/scenarios/test_3b.py) and [test_3e](../pharma_attack/scenarios/test_3e.py) need it. Re-run the `cp` from step 3.
 
 ## Related
 

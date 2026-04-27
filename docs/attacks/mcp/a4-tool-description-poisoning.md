@@ -84,11 +84,11 @@ To run any variant in the legacy 3-prefix scheme:
 MCP_MODE=poisoned uv run mcp-server
 
 # Terminal 2 — trigger a scenario
-uv run python scripts/scenarios/test_3a.py     # backdoor injection
-uv run python scripts/scenarios/test_3b.py     # credential harvest
-uv run python scripts/scenarios/test_3c.py     # supply chain (use mcp-fake first)
-uv run python scripts/scenarios/test_3d.py     # BCC hijack
-uv run python scripts/scenarios/test_3e.py     # LIMS exfil
+uv run python pharma_attack/scenarios/test_3a.py     # backdoor injection
+uv run python pharma_attack/scenarios/test_3b.py     # credential harvest
+uv run python pharma_attack/scenarios/test_3c.py     # supply chain (use mcp-fake first)
+uv run python pharma_attack/scenarios/test_3d.py     # BCC hijack
+uv run python pharma_attack/scenarios/test_3e.py     # LIMS exfil
 ```
 
 Evidence in `results/harvest.log` with `[3X]` prefix per scenario.

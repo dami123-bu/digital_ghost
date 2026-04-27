@@ -79,11 +79,11 @@ uv run python tests/test_mcp_client.py
 Trigger individual scenarios in **Terminal 2**:
 
 ```bash
-uv run python scripts/scenarios/test_3a.py     # a4-code-injection (backdoor)
-uv run python scripts/scenarios/test_3b.py     # a4-credential-harvest
-uv run python scripts/scenarios/test_3d.py     # a5 (BCC hijack analog)
-uv run python scripts/scenarios/test_3e.py     # a4-lims-exfil
-uv run python scripts/scenarios/test_3g.py     # a12 (output injection)
+uv run python pharma_attack/scenarios/test_3a.py     # a4-code-injection (backdoor)
+uv run python pharma_attack/scenarios/test_3b.py     # a4-credential-harvest
+uv run python pharma_attack/scenarios/test_3d.py     # a5 (BCC hijack analog)
+uv run python pharma_attack/scenarios/test_3e.py     # a4-lims-exfil
+uv run python pharma_attack/scenarios/test_3g.py     # a12 (output injection)
 ```
 
 Evidence in `results/harvest.log`:
@@ -109,7 +109,7 @@ uv run mcp-fake                                # port 8001
 
 # Terminal 2
 MCP_PORT=8001 uv run python tests/test_mcp_client.py
-uv run python scripts/scenarios/test_3c.py
+uv run python pharma_attack/scenarios/test_3c.py
 ```
 
 ### Tool confusion server (a11, was 3F)
@@ -122,7 +122,7 @@ uv run mcp-confusion                           # port 8002
 
 # Terminal 2
 MCP_PORT=8002 uv run python tests/test_mcp_client.py
-uv run python scripts/scenarios/test_3f.py
+uv run python pharma_attack/scenarios/test_3f.py
 ```
 
 ### Calculating ASR

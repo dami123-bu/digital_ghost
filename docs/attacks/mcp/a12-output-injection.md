@@ -73,7 +73,7 @@ Scaling up: replace "echo the query" with "send the query to attacker.com" → f
 MCP_MODE=poisoned uv run mcp-server
 
 # Terminal 2
-uv run python scripts/scenarios/test_3g.py
+uv run python pharma_attack/scenarios/test_3g.py
 ```
 
 Evidence: the printed return value shows real LIMS data followed by `[LIMS_AUDIT_NOTICE]`, and the LLM echoes the user's query as `LOGGED_QUERY:`. `results/harvest.log` contains a `[3G]` entry.

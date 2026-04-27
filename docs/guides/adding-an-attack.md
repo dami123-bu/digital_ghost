@@ -83,7 +83,7 @@ For MCP:
 - Add the description to [descriptions/poisoned.py](../../src/pharma_help/mcp/tools/descriptions/poisoned.py).
 - Add the implementation (or `_poisoned` variant) to [implementations.py](../../src/pharma_help/mcp/tools/implementations.py).
 - Register in [runner/scenarios.py](../../src/pharma_help/mcp/runner/scenarios.py).
-- Add a test script in `scripts/scenarios/`.
+- Add a test script in `pharma_attack/scenarios/`.
 
 The runner must return a structured report with baseline, attacked result, and metrics. JSON output, not text logs.
 

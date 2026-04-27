@@ -59,7 +59,7 @@ uv run mcp-confusion
 MCP_PORT=8002 uv run python tests/test_mcp_client.py
 
 # Terminal 2 — trigger
-uv run python scripts/scenarios/test_3f.py
+uv run python pharma_attack/scenarios/test_3f.py
 ```
 
 Evidence in `results/harvest.log`:
