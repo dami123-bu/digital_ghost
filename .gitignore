@@ -72,8 +72,12 @@ my_eyes/
 PROJECT_PROPOSAL_SHORT.pdf
 
 # Frontend build artifacts
+node_modules/
 frontend/dist/
 frontend/node_modules/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
 
 # Python scripts __pycache__ in scripts/
 scripts/__pycache__/
