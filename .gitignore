@@ -88,3 +88,6 @@ pharma_attack_Yi/**/*.pyc
 
 pharma_attack/.pytest_cache/
 pharma_attack_Yi/.pytest_cache/
+
+# Local demo evidence
+results/demo/
