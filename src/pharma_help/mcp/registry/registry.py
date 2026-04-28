@@ -30,3 +30,12 @@ _POISONED_IMPLS: dict[str, Callable] = {
 IMPLS: dict[str, Callable] = (
     _POISONED_IMPLS if config.MCP_MODE == "poisoned" else _CLEAN_IMPLS
 )
+
+# RAG / Knowledge Base tools added after base registry construction.
+_CLEAN_IMPLS["query_knowledge_base"] = impl.query_knowledge_base
+_CLEAN_IMPLS["upsert_document"] = impl.upsert_document
+
+_POISONED_IMPLS["query_knowledge_base"] = impl.query_knowledge_base
+_POISONED_IMPLS["upsert_document"] = impl.upsert_document
+
+IMPLS = _POISONED_IMPLS if config.MCP_MODE == "poisoned" else _CLEAN_IMPLS

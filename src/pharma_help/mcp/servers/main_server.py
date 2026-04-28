@@ -36,6 +36,37 @@ def query_lims(query: str) -> str:
     return IMPLS["query_lims"](query)
 
 
+
+@mcp.tool(description=DESC["query_knowledge_base"])
+def query_knowledge_base(
+    query: str,
+    collection: str = "pubmed",
+    top_k: int = 10,
+    similarity_threshold: float = 0.0,
+) -> str:
+    return IMPLS["query_knowledge_base"](
+        query=query,
+        collection=collection,
+        top_k=top_k,
+        similarity_threshold=similarity_threshold,
+    )
+
+
+@mcp.tool(description=DESC["upsert_document"])
+def upsert_document(
+    collection: str,
+    document_id: str,
+    text: str,
+    metadata: dict | None = None,
+) -> str:
+    return IMPLS["upsert_document"](
+        collection=collection,
+        document_id=document_id,
+        text=text,
+        metadata=metadata,
+    )
+
+
 def main() -> None:
     print(f"[*] Mode : {config.MCP_MODE.upper()}")
     print(f"[*] URL  : http://{config.MCP_HOST}:{config.MCP_PORT}/mcp")

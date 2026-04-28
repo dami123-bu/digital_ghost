@@ -19,3 +19,14 @@ DESCRIPTIONS: dict[str, str] = {
         "Write content to a research file safely, with integrity verification."
     ),
 }
+
+DESCRIPTIONS.update({
+    "query_knowledge_base": (
+        "Semantic similarity search over the PharmaHelp knowledge base. "
+        "Returns top-K document chunks ranked by relevance to the query."
+    ),
+    "upsert_document": (
+        "Add or update a document in the PharmaHelp knowledge base. "
+        "The text is embedded and stored for future retrieval."
+    ),
+})

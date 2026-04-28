@@ -155,3 +155,141 @@ def _write_harvest(label: str, data: dict) -> None:
         f.write(f"\n{label}\n")
         if data:
             f.write(json.dumps(data, indent=2) + "\n")
+
+# ---------------------------------------------------------------------------
+# RAG / Knowledge Base MCP tools
+# ---------------------------------------------------------------------------
+
+def _sanitize_chroma_metadata(metadata):
+    """Chroma metadata values must be scalar values."""
+    metadata = metadata or {}
+    clean = {}
+    for key, value in metadata.items():
+        key = str(key)
+        if value is None:
+            clean[key] = ""
+        elif isinstance(value, (str, int, float, bool)):
+            clean[key] = value
+        else:
+            clean[key] = json.dumps(value)
+    return clean
+
+
+def _kb_client_and_embedder():
+    """Create a Chroma persistent client and Ollama embedding function."""
+    import chromadb
+    from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
+
+    embedding_function = OllamaEmbeddingFunction(
+        url=f"{config.OLLAMA_BASE_URL.rstrip('/')}/api/embeddings",
+        model_name=config.OLLAMA_EMBED_MODEL,
+    )
+    client = chromadb.PersistentClient(path=str(config.CHROMA_DIR))
+    return client, embedding_function
+
+
+def query_knowledge_base(
+    query: str,
+    collection: str = "pubmed",
+    top_k: int = 10,
+    similarity_threshold: float = 0.0,
+) -> str:
+    """MCP read path: query ChromaDB through the MCP tool layer."""
+    client, embedding_function = _kb_client_and_embedder()
+    collection = collection or getattr(config, "CHROMA_COLLECTION_PUBMED", "pubmed")
+    top_k = max(1, min(int(top_k), 50))
+
+    try:
+        col = client.get_collection(
+            name=collection,
+            embedding_function=embedding_function,
+        )
+    except Exception as exc:
+        return json.dumps(
+            {
+                "tool": "query_knowledge_base",
+                "status": "error",
+                "collection": collection,
+                "error": str(exc),
+            },
+            indent=2,
+        )
+
+    result = col.query(
+        query_texts=[query],
+        n_results=top_k,
+        include=["documents", "metadatas", "distances"],
+    )
+
+    ids = result.get("ids", [[]])[0]
+    docs = result.get("documents", [[]])[0]
+    metadatas = result.get("metadatas", [[]])[0]
+    distances = result.get("distances", [[]])[0]
+
+    hits = []
+    for i, doc_id in enumerate(ids):
+        distance = distances[i] if i < len(distances) else None
+
+        # Keep threshold permissive unless explicitly set.
+        # Chroma distance is not always normalized cosine similarity.
+        if similarity_threshold and distance is not None and distance > similarity_threshold:
+            continue
+
+        hits.append(
+            {
+                "rank": i + 1,
+                "id": doc_id,
+                "distance": distance,
+                "metadata": metadatas[i] if i < len(metadatas) else {},
+                "document": docs[i] if i < len(docs) else "",
+            }
+        )
+
+    return json.dumps(
+        {
+            "tool": "query_knowledge_base",
+            "status": "success",
+            "collection": collection,
+            "query": query,
+            "top_k": top_k,
+            "hits": hits,
+        },
+        indent=2,
+    )
+
+
+def upsert_document(
+    collection: str,
+    document_id: str,
+    text: str,
+    metadata: dict | None = None,
+) -> str:
+    """MCP write path: insert or update a document in ChromaDB."""
+    client, embedding_function = _kb_client_and_embedder()
+    collection = collection or "internal_docs"
+
+    col = client.get_or_create_collection(
+        name=collection,
+        embedding_function=embedding_function,
+    )
+
+    clean_metadata = _sanitize_chroma_metadata(metadata)
+    clean_metadata.setdefault("source", "mcp_upsert")
+    clean_metadata.setdefault("document_id", document_id)
+
+    col.upsert(
+        ids=[document_id],
+        documents=[text],
+        metadatas=[clean_metadata],
+    )
+
+    return json.dumps(
+        {
+            "tool": "upsert_document",
+            "status": "success",
+            "collection": collection,
+            "document_id": document_id,
+            "metadata": clean_metadata,
+        },
+        indent=2,
+    )
