@@ -6,7 +6,7 @@ Chainlit entrypoint for PharmaHelp.
 Lifecycle:
   on_chat_start — build the LangGraph agent, store it in the user session
                   alongside a unique thread_id for InMemorySaver checkpointing.
-  on_message    — pass the user's message to the graph and stream the reply.
+  on_message    — pass the user's message to the graph and stream the reply. (doesnt stream reply)
 """
 
 import uuid
@@ -34,17 +34,10 @@ async def on_message(message: cl.Message) -> None:
     thread_id = cl.user_session.get("thread_id")
     config = {"configurable": {"thread_id": thread_id}}
 
-    msg = cl.Message(content="")
-    await msg.send()
-
-    async for event in graph.astream_events(
+    result = await graph.ainvoke(
         {"messages": [HumanMessage(content=message.content)]},
         config=config,
-        version="v2",
-    ):
-        if event["event"] == "on_chat_model_stream":
-            token = event["data"]["chunk"].content
-            if token:
-                await msg.stream_token(token)
+    )
 
-    await msg.update()
+    final_msg = result["messages"][-1]
+    await cl.Message(content=final_msg.content).send()
