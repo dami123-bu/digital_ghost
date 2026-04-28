@@ -67,3 +67,13 @@ my_eyes/
 
 # Chainlit
 .chainlit/
+
+# Project proposal (sensitive/private document)
+PROJECT_PROPOSAL_SHORT.pdf
+
+# Frontend build artifacts
+frontend/dist/
+frontend/node_modules/
+
+# Python scripts __pycache__ in scripts/
+scripts/__pycache__/

@@ -18,12 +18,16 @@ DRUGS_FILE = DATA_DIR / "drugs.txt"
 # --- Ollama ---
 
 OLLAMA_BASE_URL: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_LLM_MODEL: str = os.environ.get("OLLAMA_LLM_MODEL", "gemma3:270m")
+OLLAMA_LLM_MODEL: str = os.environ.get("OLLAMA_LLM_MODEL", "qwen2.5:14b")
 OLLAMA_EMBED_MODEL: str = os.environ.get("OLLAMA_EMBED_MODEL", "nomic-embed-text")
 
 # --- ChromaDB ---
 
 CHROMA_COLLECTION_PUBMED: str = "pubmed"
+CHROMA_COLLECTION_CLEAN: str = "pharma_clean"
+CHROMA_COLLECTION_POISONED: str = "pharma_poisoned"
+CHROMA_COLLECTION_UPLOADS_CLEAN: str = "pharma_uploads_clean"
+CHROMA_COLLECTION_UPLOADS_POISONED: str = "pharma_uploads_poisoned"
 
 # --- PubMed / NCBI ---
 
