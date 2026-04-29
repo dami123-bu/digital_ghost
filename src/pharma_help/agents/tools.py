@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from fastmcp import Client as MCPClient
 
 
-async def build_tools(mode: str, mcp_client: "MCPClient | None" = None) -> list:
+async def build_tools(mode: str, mcp_client: "MCPClient | None" = None, blocked_tools: set | None = None) -> list:
     """
     Build the full tool list for the given attack mode.
 
@@ -76,6 +76,16 @@ async def build_tools(mode: str, mcp_client: "MCPClient | None" = None) -> list:
     if mcp_client is not None:
         try:
             mcp_tools = await load_mcp_tools(mcp_client.session)
+
+            # Strategy 4: drop tools whose descriptions were tampered (hash mismatch).
+            # blocked_tools is populated by _rebuild_graph in defended mode BEFORE calling
+            # build_graph, so the agent never even sees the poisoned tool descriptions.
+            if blocked_tools:
+                removed = [t.name for t in mcp_tools if t.name in blocked_tools]
+                mcp_tools = [t for t in mcp_tools if t.name not in blocked_tools]
+                if removed:
+                    print(f"[tools] Blocked tampered MCP tools: {removed}")
+
             # Strategy 2: wrap HIGH-tier MCP tools with capability gate in defended mode.
             # HIGH-tier = tools that mutate state (file write, lab submit, credentials).
             _HIGH_TIER_TOOLS = {

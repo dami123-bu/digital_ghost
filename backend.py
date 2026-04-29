@@ -153,12 +153,10 @@ async def _connect_mcp_client() -> None:
 async def _rebuild_graph() -> None:
     mode = _state["mode"]
     provider = _state["provider"]
-    _state["graph"] = await build_graph(
-        mode=mode, mcp_client=_state["mcp_client"], provider=provider
-    )
-    _log_event("graph_rebuilt", mode, f"graph rebuilt for mode={mode} provider={provider}")
 
-    # Strategy 4: verify MCP tool descriptions against pinned trust store
+    # Strategy 4: verify MCP tool descriptions BEFORE building the graph so that
+    # tampered tools can be excluded from the agent's toolset entirely.
+    blocked_tools: set = set()
     if mode == "defended" and _state["mcp_client"] is not None:
         try:
             from langchain_mcp_adapters.tools import load_mcp_tools
@@ -167,13 +165,22 @@ async def _rebuild_graph() -> None:
             if trust_store:
                 tampered = verify_mcp_tools(live_tools, trust_store=trust_store)
                 if tampered:
+                    blocked_tools = set(tampered)
                     _log_event(
                         "tool_description_tampered",
                         mode,
-                        f"MCP tool descriptions changed from pinned hashes: {tampered}",
+                        f"Tampered MCP tools blocked from agent: {tampered}",
                     )
         except Exception as e:
             _log_event("verifier_error", mode, f"MCP trust store check failed: {e}")
+
+    _state["graph"] = await build_graph(
+        mode=mode,
+        mcp_client=_state["mcp_client"],
+        provider=provider,
+        blocked_tools=blocked_tools if blocked_tools else None,
+    )
+    _log_event("graph_rebuilt", mode, f"graph rebuilt for mode={mode} provider={provider} blocked={blocked_tools or 'none'}")
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────────────
@@ -460,6 +467,16 @@ async def query_with_doc(
     # Chunk in memory — never touches ChromaDB
     ephemeral_docs = chunk_document_ephemeral(filename, text)
 
+    # In defended mode, strip injections from ephemeral docs just like KB docs.
+    # If a chunk is flagged, format_docs will exclude it from the LLM prompt.
+    if mode == "defended":
+        from pharma_help.rag.store import _strip_injections
+        for doc in ephemeral_docs:
+            cleaned, stripped = _strip_injections(doc["text"])
+            if stripped:
+                doc["text"] = cleaned
+                doc["metadata"]["_injection_stripped"] = True
+
     kb_docs = query_docs(question, mode=mode, k=5)
     upload_docs = query_uploads(question, mode=mode, k=2)
     # ephemeral docs have distance=0.0, so they sort to the top
@@ -581,6 +598,52 @@ async def get_logs():
 async def clear_logs():
     _state["logs"].clear()
     return {"cleared": True}
+
+
+@app.get("/harvest")
+async def get_harvest():
+    """Return last 100 lines of results/harvest.log, newest first."""
+    from pathlib import Path
+    log_path = Path("results/harvest.log")
+    if not log_path.exists():
+        return {"entries": []}
+    lines = [l for l in log_path.read_text().splitlines() if l.strip()]
+    return {"entries": list(reversed(lines[-100:]))}
+
+
+@app.delete("/harvest")
+async def clear_harvest():
+    from pathlib import Path
+    log_path = Path("results/harvest.log")
+    if log_path.exists():
+        log_path.write_text("")
+    return {"cleared": True}
+
+
+@app.delete("/uploads")
+async def clear_uploads(target: str = "current"):
+    """
+    Delete all documents from an uploads collection.
+    target: "current" (active mode), "clean", "poisoned", or "all"
+    """
+    from pharma_help.rag.store import get_uploads_collection
+    mode = _state["mode"]
+    targets = []
+    if target == "all":
+        targets = ["clean", "poisoned"]
+    elif target in ("clean", "poisoned"):
+        targets = [target]
+    else:
+        targets = [mode]
+
+    deleted = {}
+    for t in targets:
+        col = get_uploads_collection(t)
+        ids = col.get()["ids"]
+        if ids:
+            col.delete(ids=ids)
+        deleted[t] = len(ids)
+    return {"deleted": deleted}
 
 
 # ── entrypoint ────────────────────────────────────────────────────────────────

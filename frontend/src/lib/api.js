@@ -43,4 +43,7 @@ export const api = {
   clearLogs:        ()                    => request('/logs', { method: 'DELETE' }),
   ingest:           (formData)            => upload('/ingest', formData),
   ingestDemoPoison: ()                    => request('/ingest/demo-poison', { method: 'POST', headers: {} }),
+  clearUploads:     (target = 'current') => request(`/uploads?target=${target}`, { method: 'DELETE' }),
+  getHarvest:       ()                    => request('/harvest'),
+  clearHarvest:     ()                    => request('/harvest', { method: 'DELETE' }),
 }

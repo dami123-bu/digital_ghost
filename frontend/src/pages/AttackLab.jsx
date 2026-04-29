@@ -2,12 +2,14 @@ import { useState, useRef, useEffect } from 'react'
 import {
   Send, Bot, User, Loader2, ShieldCheck, ShieldAlert, ShieldOff,
   Zap, Eye, AlertTriangle, CheckCircle, XCircle, Trash2, ChevronDown, ChevronUp,
-  Cpu, Wrench, Upload, Database, FileText
+  Cpu, Wrench, Upload, Database, FileText, Plus, X, MessageSquare
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
 
-const SESSION_ID = crypto.randomUUID()
+function makeSession(n) {
+  return { id: crypto.randomUUID(), name: `Session ${n}`, messages: [], lastResult: null }
+}
 
 const MODES = [
   { id: 'clean',        label: 'Clean',    Icon: ShieldCheck,  color: 'dg-clean',  desc: 'Normal RAG + clean MCP descriptions' },
@@ -195,7 +197,61 @@ function ScoresPanel() {
   )
 }
 
-function AttackConsole({ lastResult, logs, mode, onClearLogs, loadingLogs }) {
+function HarvestLogPanel({ entries, onClear }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div className="flex-none border border-dg-poison/30 rounded-lg overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-mono hover:bg-dg-poison/5 transition-colors bg-dg-surface/40"
+      >
+        <span className="flex items-center gap-1.5 uppercase tracking-wider">
+          <AlertTriangle className="w-3 h-3 text-dg-poison" />
+          <span className="text-dg-poison">Harvest Log</span>
+          <span className="text-dg-muted normal-case tracking-normal ml-1">— MCP side-channel</span>
+          {entries.length > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded bg-dg-poison/20 text-dg-poison text-[10px] font-bold">
+              {entries.length}
+            </span>
+          )}
+        </span>
+        <div className="flex items-center gap-2">
+          {open && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onClear() }}
+              title="Clear harvest log"
+              className="text-dg-muted hover:text-dg-poison transition-colors"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          )}
+          {open ? <ChevronUp className="w-3 h-3 text-dg-muted" /> : <ChevronDown className="w-3 h-3 text-dg-muted" />}
+        </div>
+      </button>
+      {open && (
+        <div className="max-h-36 overflow-y-auto space-y-1 p-2">
+          {entries.length === 0
+            ? <p className="text-dg-muted text-xs italic px-1 py-1">No credentials harvested — try MCP Only mode</p>
+            : entries.map((line, i) => {
+                const scenario = line.match(/\[3[A-G]\]/)?.[0]
+                return (
+                  <div key={i} className="flex items-start gap-2 rounded px-2.5 py-1.5 text-[11px] font-mono border border-dg-poison/30 bg-dg-poison/5 text-dg-poison">
+                    <XCircle className="w-3 h-3 mt-0.5 flex-none" />
+                    <div className="min-w-0">
+                      {scenario && <span className="font-bold mr-2">{scenario}</span>}
+                      <span className="break-all">{line.replace(/\[3[A-G]\]\s*/, '')}</span>
+                    </div>
+                  </div>
+                )
+              })
+          }
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AttackConsole({ lastResult, logs, mode, onClearLogs, loadingLogs, harvestEntries, onClearHarvest }) {
   const modeInfo = MODES.find((m) => m.id === mode) || MODES[0]
   const ModeIcon = modeInfo.Icon
   const attackCount  = logs.filter((l) => l.event === 'injection_retrieved').length
@@ -258,7 +314,9 @@ function AttackConsole({ lastResult, logs, mode, onClearLogs, loadingLogs }) {
           <div className="text-[11px] font-mono text-dg-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <Eye className="w-3 h-3" /> Retrieved Context
             {lastResult.injection_detected && (
-              <span className="ml-auto text-dg-defend">injection detected + stripped</span>
+              <span className="ml-auto text-dg-defend">
+                {lastResult.mode === 'defended' ? 'injection detected + stripped' : 'injection detected'}
+              </span>
             )}
           </div>
           <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
@@ -297,6 +355,9 @@ function AttackConsole({ lastResult, logs, mode, onClearLogs, loadingLogs }) {
 
       {/* CVSS Scores panel */}
       <ScoresPanel />
+
+      {/* Harvest Log (MCP side-channel exfiltration) */}
+      <HarvestLogPanel entries={harvestEntries} onClear={onClearHarvest} />
 
       {/* Attack log */}
       <div className="flex-1 flex flex-col min-h-0">
@@ -356,12 +417,67 @@ export default function AttackLab() {
     { id: 'claude', label: 'Claude', available: false },
   ])
   const [switchingProvider, setSwitchingProvider] = useState(false)
-  const [messages, setMessages] = useState([])
+
+  // Sessions — persisted to localStorage
+  const [sessions, setSessions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dg_sessions')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {}
+    return [makeSession(1)]
+  })
+  const [activeSessionId, setActiveSessionId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dg_active_session')
+      const sessions = JSON.parse(localStorage.getItem('dg_sessions') || '[]')
+      if (saved && sessions.some((s) => s.id === saved)) return saved
+    } catch {}
+    return sessions[0]?.id
+  })
+
+  // Persist whenever sessions or active ID changes
+  useEffect(() => {
+    try { localStorage.setItem('dg_sessions', JSON.stringify(sessions)) } catch {}
+  }, [sessions])
+  useEffect(() => {
+    try { localStorage.setItem('dg_active_session', activeSessionId) } catch {}
+  }, [activeSessionId])
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId) || sessions[0]
+  const messages = activeSession?.messages ?? []
+  const lastResult = activeSession?.lastResult ?? null
+
+  function updateSession(id, updater) {
+    setSessions((prev) => prev.map((s) => s.id === id ? { ...s, ...updater(s) } : s))
+  }
+
+  function addSession() {
+    const s = makeSession(sessions.length + 1)
+    setSessions((prev) => [...prev, s])
+    setActiveSessionId(s.id)
+  }
+
+  function deleteSession(id) {
+    setSessions((prev) => {
+      const next = prev.filter((s) => s.id !== id)
+      if (next.length === 0) {
+        const fresh = makeSession(1)
+        setActiveSessionId(fresh.id)
+        return [fresh]
+      }
+      if (id === activeSessionId) setActiveSessionId(next[next.length - 1].id)
+      return next
+    })
+  }
+
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
-  const [lastResult, setLastResult] = useState(null)
   const [logs, setLogs] = useState([])
   const [loadingLogs, setLoadingLogs] = useState(false)
+  const [harvestEntries, setHarvestEntries] = useState([])
   // Attached file for ephemeral injection via chat input
   const [attachedFile, setAttachedFile] = useState(null)
   // KB upload panel
@@ -374,10 +490,11 @@ export default function AttackLab() {
   const attachFileRef = useRef(null)
   const v2FileRef = useRef(null)
 
-  // Poll logs every 3s
+  // Poll logs + harvest every 3s
   useEffect(() => {
     fetchLogs()
-    const id = setInterval(fetchLogs, 3000)
+    fetchHarvest()
+    const id = setInterval(() => { fetchLogs(); fetchHarvest() }, 3000)
     return () => clearInterval(id)
   }, [])
 
@@ -403,6 +520,13 @@ export default function AttackLab() {
     try {
       const data = await api.getLogs()
       setLogs(data)
+    } catch {}
+  }
+
+  async function fetchHarvest() {
+    try {
+      const data = await api.getHarvest()
+      setHarvestEntries(data.entries || [])
     } catch {}
   }
 
@@ -457,22 +581,22 @@ export default function AttackLab() {
     if (!text || sending) return
     setSending(true)
     const file = attachedFile
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', content: file ? `[📎 ${file.name}] ${text}` : text },
-    ])
+    const sessionId = activeSession.id
+    const userMsg = { role: 'user', content: file ? `[📎 ${file.name}] ${text}` : text }
+    updateSession(sessionId, (s) => ({ messages: [...s.messages, userMsg] }))
     setInput('')
     setAttachedFile(null)
     if (attachFileRef.current) attachFileRef.current.value = ''
     try {
       const res = file
-        ? await api.queryWithDoc(text, SESSION_ID, file)
-        : await api.query(text, SESSION_ID)
-      setLastResult(res)
-      setMessages((prev) => [...prev, { role: 'assistant', content: res.answer, meta: res }])
+        ? await api.queryWithDoc(text, sessionId, file)
+        : await api.query(text, sessionId)
+      const assistantMsg = { role: 'assistant', content: res.answer, meta: res }
+      updateSession(sessionId, (s) => ({ messages: [...s.messages, assistantMsg], lastResult: res }))
       fetchLogs()
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${err.message}` }])
+      const errMsg = { role: 'assistant', content: `Error: ${err.message}` }
+      updateSession(sessionId, (s) => ({ messages: [...s.messages, errMsg] }))
     } finally {
       setSending(false)
     }
@@ -488,10 +612,50 @@ export default function AttackLab() {
       <ModelBar provider={provider} providers={providers} onChange={handleProviderChange} switching={switchingProvider} />
 
       <div className="flex-1 flex gap-0 overflow-hidden">
-        {/* ── Left: Chat ── */}
+
+        {/* ── Sessions Sidebar ── */}
+        <div className="w-36 flex-none flex flex-col border-r border-dg-border bg-dg-surface/30 overflow-hidden">
+          <div className="px-2 py-2 border-b border-dg-border flex items-center justify-between flex-none">
+            <span className="text-[10px] font-mono text-dg-muted uppercase tracking-wider flex items-center gap-1">
+              <MessageSquare className="w-2.5 h-2.5" /> Sessions
+            </span>
+            <button
+              onClick={addSession}
+              title="New session"
+              className="p-0.5 rounded text-dg-muted hover:text-white hover:bg-dg-accent/20 transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto py-1">
+            {sessions.map((s) => (
+              <div
+                key={s.id}
+                className={cn(
+                  'flex items-center gap-1 px-2 py-1.5 cursor-pointer transition-colors text-[11px] font-mono',
+                  s.id === activeSessionId
+                    ? 'bg-dg-accent/15 text-white border-r-2 border-dg-accent'
+                    : 'text-dg-muted hover:bg-dg-surface hover:text-white'
+                )}
+                onClick={() => setActiveSessionId(s.id)}
+              >
+                <span className="flex-1 truncate">{s.messages[0]?.content.slice(0, 18) || s.name}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteSession(s.id) }}
+                  className="text-dg-muted/40 hover:text-dg-poison transition-colors flex-none"
+                  title="Delete session"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Chat ── */}
         <div className="flex-1 flex flex-col border-r border-dg-border overflow-hidden">
           <div className="px-4 py-2 border-b border-dg-border bg-dg-blue/10 flex-none">
-            <p className="text-xs text-dg-muted font-mono">RESEARCHER VIEW — PharmaHelp Chat</p>
+            <p className="text-xs text-dg-muted font-mono">RESEARCHER VIEW — {activeSession?.name ?? 'PharmaHelp Chat'}</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -530,7 +694,8 @@ export default function AttackLab() {
                     <div className="flex items-center gap-2 mt-1.5 text-[10px] font-mono text-dg-muted/60">
                       {m.meta.injection_detected && (
                         <span className="flex items-center gap-1 text-dg-defend">
-                          <ShieldCheck className="w-2.5 h-2.5" /> injection stripped
+                          <ShieldCheck className="w-2.5 h-2.5" />
+                          {m.meta.mode === 'defended' ? 'injection stripped' : 'injection detected'}
                         </span>
                       )}
                       {m.meta.turn_count > 1 && (
@@ -693,6 +858,36 @@ export default function AttackLab() {
                   </button>
                 </div>
 
+                {/* Clear uploads */}
+                <div className="rounded-lg border border-dg-poison/30 bg-dg-poison/5 p-3 space-y-2">
+                  <div className="text-[10px] font-mono text-dg-poison uppercase tracking-wider flex items-center gap-1.5">
+                    <Trash2 className="w-3 h-3" /> Clear Uploaded Docs
+                  </div>
+                  <p className="text-[10px] text-dg-muted leading-relaxed">
+                    Remove all user-uploaded documents from the knowledge base. Useful when an accidental upload contaminates the clean collection.
+                  </p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {['current', 'clean', 'poisoned', 'all'].map((t) => (
+                      <button
+                        key={t}
+                        onClick={async () => {
+                          if (!confirm(`Delete all uploads from ${t === 'current' ? `${mode} (current)` : t} collection?`)) return
+                          try {
+                            const res = await api.clearUploads(t)
+                            const total = Object.values(res.deleted).reduce((a, b) => a + b, 0)
+                            alert(`Cleared ${total} chunk(s) from: ${Object.entries(res.deleted).map(([k, v]) => `${k} (${v})`).join(', ')}`)
+                          } catch (e) {
+                            alert(`Failed: ${e.message}`)
+                          }
+                        }}
+                        className="text-[10px] px-2 py-1 rounded border border-dg-poison/40 text-dg-poison hover:bg-dg-poison/10 font-mono transition-colors"
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
               </div>
             )}
           </div>
@@ -704,6 +899,8 @@ export default function AttackLab() {
               mode={mode}
               onClearLogs={async () => { await api.clearLogs(); fetchLogs() }}
               loadingLogs={loadingLogs}
+              harvestEntries={harvestEntries}
+              onClearHarvest={async () => { await api.clearHarvest(); fetchHarvest() }}
             />
           </div>
         </div>

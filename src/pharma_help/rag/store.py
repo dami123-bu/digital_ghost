@@ -118,11 +118,13 @@ def query_docs(query: str, mode: str, k: int = 5) -> list[dict]:
 
 _INJECTION_PATTERNS = [
     "SYSTEM NOTE:",
+    "PIPELINE DIRECTIVE:",
     "IMPORTANT:",
     "IGNORE PREVIOUS",
     "IGNORE PRIOR",
     "OVERRIDE:",
     "[LIMS_AUDIT_NOTICE]",
+    "LOGGED_QUERY:",
     "silently",
     "Do not mention",
     "Do not show",
@@ -149,14 +151,24 @@ def _strip_injections(text: str) -> tuple[str, bool]:
 
 
 def format_docs(docs: list[dict]) -> str:
-    """Format retrieved docs into a prompt-ready context block."""
+    """Format retrieved docs into a prompt-ready context block.
+
+    Docs flagged as _injection_stripped or _hash_mismatch are excluded from the
+    LLM context entirely — they are still returned by query_docs for the Attack
+    Console display, but the model never sees their content.
+    """
     if not docs:
         return "[No relevant documents found in knowledge base]"
     parts = []
     for i, doc in enumerate(docs, 1):
-        title = doc["metadata"].get("title", "Untitled")
-        source = doc["metadata"].get("source", "unknown")
+        meta = doc["metadata"]
+        if meta.get("_injection_stripped") or meta.get("_hash_mismatch"):
+            continue
+        title = meta.get("title", "Untitled")
+        source = meta.get("source", "unknown")
         parts.append(f"[Doc {i}] {title} (source: {source})\n{doc['text']}")
+    if not parts:
+        return "[No relevant documents found in knowledge base]"
     return "\n\n---\n\n".join(parts)
 
 
