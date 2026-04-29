@@ -23,7 +23,7 @@ from pharma_help.agents.graph import build_graph
 
 @cl.on_chat_start
 async def on_chat_start() -> None:
-    cl.user_session.set("graph", build_graph())
+    cl.user_session.set("graph", await build_graph())
     cl.user_session.set("thread_id", str(uuid.uuid4()))
     await cl.Message(content="Welcome to **PharmaHelp**. How can I assist you?").send()
 

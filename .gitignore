@@ -60,9 +60,6 @@ htmlcov/
 
 # Dami's stuff
 my_eyes/
-bak/
-# personal notes
-DAMI_RULES.md
 
 # Claude Code local settings
 .claude/settings.local.json
@@ -70,24 +67,17 @@ DAMI_RULES.md
 
 # Chainlit
 .chainlit/
-# PharmaAttack nested testbench local files
-pharma_attack/.venv/
-pharma_attack_Yi/.venv/
 
-pharma_attack/.env
-pharma_attack_Yi/.env
+# Project proposal (sensitive/private document)
+PROJECT_PROPOSAL_SHORT.pdf
 
-pharma_attack/artifacts/
-pharma_attack_Yi/artifacts/
+# Frontend build artifacts
+node_modules/
+frontend/dist/
+frontend/node_modules/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
 
-pharma_attack/**/__pycache__/
-pharma_attack_Yi/**/__pycache__/
-
-pharma_attack/**/*.pyc
-pharma_attack_Yi/**/*.pyc
-
-pharma_attack/.pytest_cache/
-pharma_attack_Yi/.pytest_cache/
-
-# Local demo evidence
-results/demo/
+# Python scripts __pycache__ in scripts/
+scripts/__pycache__/
