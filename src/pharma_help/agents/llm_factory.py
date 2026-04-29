@@ -19,7 +19,7 @@ from config import OLLAMA_BASE_URL, OLLAMA_LLM_MODEL
 
 LLM_PROVIDER: str = os.environ.get("LLM_PROVIDER", "ollama").lower()
 GEMINI_API_KEY: str | None = os.environ.get("GOOGLE_API_KEY")
-GEMINI_MODEL: str = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL: str = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
 
 def get_available_providers() -> dict[str, dict]:

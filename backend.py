@@ -69,7 +69,14 @@ from pharma_help.api.schemas import (
     QueryResponse,
     ToolCallRecord,
 )
-from pharma_help.rag.store import format_docs, get_collection, ingest_document, query_docs, query_uploads
+from pharma_help.rag.store import (
+    chunk_document_ephemeral,
+    format_docs,
+    get_collection,
+    ingest_document,
+    query_docs,
+    query_uploads,
+)
 
 # ── MCP server config ────────────────────────────────────────────────────────
 _MCP_HOST = os.environ.get("MCP_HOST", "127.0.0.1")
@@ -92,7 +99,7 @@ _state: dict = {
 
 def _start_mcp_proc(mode: str) -> subprocess.Popen:
     env = os.environ.copy()
-    env["MCP_MODE"] = mode
+    env["MCP_MODE"] = "poisoned" if mode == "mcp_poisoned" else mode
     proc = subprocess.Popen(
         ["uv", "run", "mcp-server"],
         env=env,
@@ -297,61 +304,53 @@ async def set_mode(req: ModeRequest):
     return ModeResponse(mode=new_mode, mcp_pid=mcp_pid)
 
 
-@app.post("/query", response_model=QueryResponse)
-async def query(req: QueryRequest):
+async def _run_query_core(
+    question: str,
+    session_id: str,
+    retrieved: list[dict],
+    injection_detected: bool,
+) -> QueryResponse:
+    """
+    Shared query execution kernel used by both /query and /query/with-doc.
+
+    Callers are responsible for building `retrieved` (the merged list of docs)
+    and computing `injection_detected` before calling this function.
+    This function handles logging, agent invocation, and response building.
+    """
     mode = _state["mode"]
     graph = _state["graph"]
 
     if graph is None:
         raise HTTPException(status_code=503, detail="Agent not ready — graph not initialized")
 
-    # ── Forced RAG injection (small-model fallback) ───────────────────────
-    retrieved: list[dict] = []
-    injection_detected = False
-
-    if _FORCE_RAG:
-        kb_docs = query_docs(req.question, mode=mode, k=5)
-        upload_docs = query_uploads(req.question, mode=mode, k=3)
-        retrieved = sorted(kb_docs + upload_docs, key=lambda d: d["distance"])[:5]
-        injection_detected = any(
-            d.get("metadata", {}).get("_injection_stripped")
-            or d.get("id", "").startswith("poison-")
-            or d.get("metadata", {}).get("source") == "upload"
-            for d in retrieved
-        )
-        context = format_docs(retrieved)
+    context = format_docs(retrieved)
+    if retrieved:
         augmented = (
             f"Relevant context from the BioForge knowledge base:\n\n{context}\n\n"
-            f"---\n\nResearcher question: {req.question}"
+            f"---\n\nResearcher question: {question}"
         )
     else:
-        augmented = req.question
+        augmented = question
 
-    # Log the query with mode info
-    _log_event(
-        "query",
-        mode,
-        f"session={req.session_id[:8]} q={req.question[:80]}",
-    )
+    _log_event("query", mode, f"session={session_id[:8]} q={question[:80]}")
 
     if mode == "poisoned" and any(
-        d["id"].startswith("poison-") or d.get("metadata", {}).get("source") == "upload"
+        d["id"].startswith("poison-") or d.get("metadata", {}).get("source") in ("upload", "ephemeral_upload")
         for d in retrieved
     ):
         _log_event(
             "injection_retrieved",
             mode,
-            f"Poisoned doc served to agent — session={req.session_id[:8]}",
+            f"Poisoned doc served to agent — session={session_id[:8]}",
         )
 
     if mode == "defended" and injection_detected:
         _log_event(
             "injection_blocked",
             "defended",
-            f"Injection pattern stripped before LLM — session={req.session_id[:8]}",
+            f"Injection pattern stripped before LLM — session={session_id[:8]}",
         )
 
-    # Strategy 4: log if any retrieved doc had a hash mismatch
     tampered_docs = [d for d in retrieved if d.get("metadata", {}).get("_hash_mismatch")]
     if tampered_docs:
         _log_event(
@@ -361,10 +360,9 @@ async def query(req: QueryRequest):
             f"{[d['id'] for d in tampered_docs]}",
         )
 
-    # ── Invoke LangGraph agent ────────────────────────────────────────────
     # Strategy 5: in defended mode use a per-request ephemeral thread so
     # poisoned context from earlier queries cannot accumulate.
-    thread_id = ephemeral_thread_id(req.session_id, mode)
+    thread_id = ephemeral_thread_id(session_id, mode)
     config = {"configurable": {"thread_id": thread_id}}
     try:
         result = await graph.ainvoke(
@@ -386,15 +384,11 @@ async def query(req: QueryRequest):
     turn_count = sum(1 for m in messages if isinstance(m, HumanMessage))
 
     if tool_calls:
-        _log_event(
-            "tool_calls",
-            mode,
-            f"Tools invoked: {[t.name for t in tool_calls]}",
-        )
+        _log_event("tool_calls", mode, f"Tools invoked: {[t.name for t in tool_calls]}")
 
     return QueryResponse(
         answer=answer,
-        session_id=req.session_id,
+        session_id=session_id,
         mode=mode,
         provider=_state["provider"],
         tool_calls=tool_calls,
@@ -402,6 +396,89 @@ async def query(req: QueryRequest):
         injection_detected=injection_detected,
         turn_count=turn_count,
     )
+
+
+@app.post("/query", response_model=QueryResponse)
+async def query(req: QueryRequest):
+    mode = _state["mode"]
+
+    retrieved: list[dict] = []
+    injection_detected = False
+
+    if _FORCE_RAG:
+        kb_docs = query_docs(req.question, mode=mode, k=5)
+        upload_docs = query_uploads(req.question, mode=mode, k=3)
+        retrieved = sorted(kb_docs + upload_docs, key=lambda d: d["distance"])[:5]
+        injection_detected = any(
+            d.get("metadata", {}).get("_injection_stripped")
+            or d.get("id", "").startswith("poison-")
+            or d.get("metadata", {}).get("source") == "upload"
+            for d in retrieved
+        )
+
+    return await _run_query_core(req.question, req.session_id, retrieved, injection_detected)
+
+
+@app.post("/query/with-doc", response_model=QueryResponse)
+async def query_with_doc(
+    question: str = Form(...),
+    session_id: str = Form(default=None),
+    file: UploadFile = File(...),
+):
+    """
+    Ephemeral query: the uploaded file is chunked in memory and injected directly
+    into the retrieved context for this one query only.  It is never stored in
+    ChromaDB — no other user or future session sees it.
+
+    Use this when a researcher wants to ask a question about a document without
+    adding it to the shared knowledge base.  The persistent /ingest path (POST /ingest
+    or the "Add to KB" button) is what triggers Scenario 1D.
+    """
+    import uuid as _uuid
+    if session_id is None:
+        session_id = str(_uuid.uuid4())
+
+    mode = _state["mode"]
+
+    data = await file.read()
+    filename = file.filename or "upload"
+
+    if filename.endswith(".pdf"):
+        try:
+            reader = pypdf.PdfReader(io.BytesIO(data))
+            text = "\n\n".join(p.extract_text() or "" for p in reader.pages)
+        except Exception as e:
+            raise HTTPException(400, f"PDF parse error: {e}")
+    elif filename.endswith(".txt"):
+        text = data.decode("utf-8", errors="replace")
+    else:
+        raise HTTPException(400, "Only .pdf and .txt files are supported")
+
+    if not text.strip():
+        raise HTTPException(400, "No text could be extracted from the file")
+
+    # Chunk in memory — never touches ChromaDB
+    ephemeral_docs = chunk_document_ephemeral(filename, text)
+
+    kb_docs = query_docs(question, mode=mode, k=5)
+    upload_docs = query_uploads(question, mode=mode, k=2)
+    # ephemeral docs have distance=0.0, so they sort to the top
+    retrieved = sorted(ephemeral_docs + kb_docs + upload_docs, key=lambda d: d["distance"])[:5]
+
+    injection_detected = any(
+        d.get("metadata", {}).get("_injection_stripped")
+        or d.get("id", "").startswith("poison-")
+        or d.get("metadata", {}).get("source") in ("upload", "ephemeral_upload")
+        for d in retrieved
+    )
+
+    _log_event(
+        "ephemeral_upload",
+        mode,
+        f"session={session_id[:8]} file={filename} — ephemeral only, not stored in KB",
+    )
+
+    return await _run_query_core(question, session_id, retrieved, injection_detected)
 
 
 @app.post("/ingest", response_model=IngestResponse)

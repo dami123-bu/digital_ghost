@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import {
   Send, Bot, User, Loader2, ShieldCheck, ShieldAlert, ShieldOff,
-  Zap, Eye, AlertTriangle, CheckCircle, XCircle, RefreshCw, Trash2, ChevronDown, ChevronUp,
-  Cpu
+  Zap, Eye, AlertTriangle, CheckCircle, XCircle, Trash2, ChevronDown, ChevronUp,
+  Cpu, Wrench, Upload, Database, FileText
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
@@ -10,9 +10,10 @@ import { api } from '../lib/api'
 const SESSION_ID = crypto.randomUUID()
 
 const MODES = [
-  { id: 'clean',    label: 'Clean',    Icon: ShieldCheck,  color: 'dg-clean',  desc: 'Normal RAG + clean MCP descriptions' },
-  { id: 'poisoned', label: 'Poisoned', Icon: ShieldOff,    color: 'dg-poison', desc: 'Poisoned RAG + malicious MCP descriptions' },
-  { id: 'defended', label: 'Defended', Icon: ShieldAlert,  color: 'dg-defend', desc: 'Poisoned data + active injection stripping' },
+  { id: 'clean',        label: 'Clean',    Icon: ShieldCheck,  color: 'dg-clean',  desc: 'Normal RAG + clean MCP descriptions' },
+  { id: 'poisoned',     label: 'Poisoned', Icon: ShieldOff,    color: 'dg-poison', desc: 'Poisoned RAG + malicious MCP descriptions' },
+  { id: 'mcp_poisoned', label: 'MCP Only', Icon: Wrench,       color: 'dg-orange', desc: 'Clean RAG + poisoned MCP descriptions — Vector 3 in isolation' },
+  { id: 'defended',     label: 'Defended', Icon: ShieldAlert,  color: 'dg-defend', desc: 'Poisoned data + active injection stripping' },
 ]
 
 const DEMO_PROMPTS = [
@@ -34,9 +35,10 @@ function ModeBar({ mode, onChange, switching }) {
           className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all border',
             mode === id
-              ? id === 'clean'    ? 'border-dg-clean bg-dg-clean/10 text-dg-clean'
-              : id === 'poisoned' ? 'border-dg-poison bg-dg-poison/10 text-dg-poison'
-              :                     'border-dg-defend bg-dg-defend/10 text-dg-defend'
+              ? id === 'clean'        ? 'border-dg-clean bg-dg-clean/10 text-dg-clean'
+              : id === 'poisoned'     ? 'border-dg-poison bg-dg-poison/10 text-dg-poison'
+              : id === 'mcp_poisoned' ? 'border-dg-orange bg-dg-orange/10 text-dg-orange'
+              :                         'border-dg-defend bg-dg-defend/10 text-dg-defend'
               : 'border-dg-border text-dg-muted hover:border-dg-text hover:text-white'
           )}
         >
@@ -204,22 +206,29 @@ function AttackConsole({ lastResult, logs, mode, onClearLogs, loadingLogs }) {
   const blockPct     = attackCount  > 0 ? Math.round(blockedCount / attackCount   * 100) : null
 
   return (
-    <div className="flex flex-col gap-3 h-full overflow-hidden">
+    <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-hidden">
       {/* Status bar */}
       <div className={cn(
         'flex items-center gap-3 p-3 rounded-lg border text-xs',
-        mode === 'clean'    ? 'border-dg-clean/30 bg-dg-clean/5' :
-        mode === 'poisoned' ? 'border-dg-poison/30 bg-dg-poison/5' :
-                              'border-dg-defend/30 bg-dg-defend/5'
+        mode === 'clean'        ? 'border-dg-clean/30 bg-dg-clean/5' :
+        mode === 'poisoned'     ? 'border-dg-poison/30 bg-dg-poison/5' :
+        mode === 'mcp_poisoned' ? 'border-dg-orange/30 bg-dg-orange/5' :
+                                  'border-dg-defend/30 bg-dg-defend/5'
       )}>
         <ModeIcon className={cn(
           'w-4 h-4 flex-none',
-          mode === 'clean' ? 'text-dg-clean' : mode === 'poisoned' ? 'text-dg-poison' : 'text-dg-defend'
+          mode === 'clean'        ? 'text-dg-clean' :
+          mode === 'poisoned'     ? 'text-dg-poison' :
+          mode === 'mcp_poisoned' ? 'text-dg-orange' :
+                                    'text-dg-defend'
         )} />
         <div>
           <div className={cn(
             'font-semibold',
-            mode === 'clean' ? 'text-dg-clean' : mode === 'poisoned' ? 'text-dg-poison' : 'text-dg-defend'
+            mode === 'clean'        ? 'text-dg-clean' :
+            mode === 'poisoned'     ? 'text-dg-poison' :
+            mode === 'mcp_poisoned' ? 'text-dg-orange' :
+                                      'text-dg-defend'
           )}>{modeInfo.label} Mode</div>
           <div className="text-dg-muted">{modeInfo.desc}</div>
         </div>
@@ -353,9 +362,17 @@ export default function AttackLab() {
   const [lastResult, setLastResult] = useState(null)
   const [logs, setLogs] = useState([])
   const [loadingLogs, setLoadingLogs] = useState(false)
-  const [uploadingPdf, setUploadingPdf] = useState(false)
+  // Attached file for ephemeral injection via chat input
+  const [attachedFile, setAttachedFile] = useState(null)
+  // KB upload panel
+  const [v2File, setV2File] = useState(null)
+  const [v2Mode, setV2Mode] = useState('poisoned')
+  const [v2Ingesting, setV2Ingesting] = useState(false)
+  const [uploadPanelOpen, setUploadPanelOpen] = useState(false)
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
+  const attachFileRef = useRef(null)
+  const v2FileRef = useRef(null)
 
   // Poll logs every 3s
   useEffect(() => {
@@ -389,16 +406,22 @@ export default function AttackLab() {
     } catch {}
   }
 
-  async function handleDemoPoisonUpload() {
-    if (uploadingPdf) return
-    setUploadingPdf(true)
+  async function handleV2Ingest() {
+    if (!v2File || v2Ingesting) return
+    setV2Ingesting(true)
     try {
-      await api.ingestDemoPoison()
+      const fd = new FormData()
+      fd.append('file', v2File)
+      fd.append('mode', v2Mode)
+      const res = await api.ingest(fd)
       fetchLogs()
+      alert(`Ingested "${res.filename}" → ${res.chunks_stored} chunks into ${res.collection} collection`)
+      setV2File(null)
+      if (v2FileRef.current) v2FileRef.current.value = ''
     } catch (e) {
-      alert(`Demo poison upload failed: ${e.message}`)
+      alert(`KB ingest failed: ${e.message}`)
     } finally {
-      setUploadingPdf(false)
+      setV2Ingesting(false)
     }
   }
 
@@ -433,10 +456,18 @@ export default function AttackLab() {
     const text = input.trim()
     if (!text || sending) return
     setSending(true)
-    setMessages((prev) => [...prev, { role: 'user', content: text }])
+    const file = attachedFile
+    setMessages((prev) => [
+      ...prev,
+      { role: 'user', content: file ? `[📎 ${file.name}] ${text}` : text },
+    ])
     setInput('')
+    setAttachedFile(null)
+    if (attachFileRef.current) attachFileRef.current.value = ''
     try {
-      const res = await api.query(text, SESSION_ID)
+      const res = file
+        ? await api.queryWithDoc(text, SESSION_ID, file)
+        : await api.query(text, SESSION_ID)
       setLastResult(res)
       setMessages((prev) => [...prev, { role: 'assistant', content: res.answer, meta: res }])
       fetchLogs()
@@ -540,21 +571,45 @@ export default function AttackLab() {
           </div>
 
           <div className="flex-none p-3 border-t border-dg-border">
-            <div className="relative rounded-lg border border-dg-border bg-dg-surface focus-within:border-dg-accent/50 transition-colors">
+            {attachedFile && (
+              <div className="flex items-center gap-1.5 mb-1.5 px-1">
+                <FileText className="w-3 h-3 text-dg-accent flex-none" />
+                <span className="text-[10px] font-mono text-dg-accent truncate">{attachedFile.name}</span>
+                <button
+                  onClick={() => { setAttachedFile(null); if (attachFileRef.current) attachFileRef.current.value = '' }}
+                  className="text-dg-muted hover:text-white ml-auto text-[10px]"
+                >✕</button>
+              </div>
+            )}
+            <div className={cn(
+              'flex items-end gap-1 rounded-lg border bg-dg-surface transition-colors',
+              attachedFile ? 'border-dg-accent/50' : 'border-dg-border focus-within:border-dg-accent/50'
+            )}>
+              {/* Paperclip */}
+              <label className="flex-none p-2 cursor-pointer text-dg-muted hover:text-white transition-colors">
+                <Upload className="w-3.5 h-3.5" />
+                <input
+                  ref={attachFileRef}
+                  type="file"
+                  accept=".pdf,.txt"
+                  className="hidden"
+                  onChange={(e) => setAttachedFile(e.target.files[0] || null)}
+                />
+              </label>
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={onKey}
-                placeholder="Ask a research question…"
+                placeholder="Ask about compounds, trials, LIMS data…"
                 rows={1}
-                className="w-full resize-none bg-transparent px-3 py-2.5 pr-10 text-xs text-dg-text placeholder-dg-muted focus:outline-none"
+                className="flex-1 resize-none bg-transparent py-2.5 pr-2 text-xs text-dg-text placeholder-dg-muted focus:outline-none"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || sending}
                 className={cn(
-                  'absolute right-2 bottom-2 p-1.5 rounded transition-all',
+                  'flex-none m-1.5 p-1.5 rounded transition-all',
                   input.trim() && !sending
                     ? 'bg-dg-accent text-white hover:bg-dg-accent/80'
                     : 'text-dg-muted cursor-not-allowed'
@@ -567,23 +622,82 @@ export default function AttackLab() {
         </div>
 
         {/* ── Right: Attack Console ── */}
-        <div className="w-96 flex flex-col overflow-hidden bg-dg-blue/10">
-          <div className="px-4 py-2 border-b border-dg-border bg-dg-blue/10 flex-none flex items-center justify-between">
+        <div className="flex-1 flex flex-col overflow-hidden bg-dg-blue/10">
+          <div className="px-4 py-2 border-b border-dg-border bg-dg-blue/10 flex-none">
             <p className="text-xs text-dg-muted font-mono">ATTACK CONSOLE</p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleDemoPoisonUpload}
-                disabled={uploadingPdf}
-                className="text-xs font-mono px-2 py-1 rounded border border-orange-500/30 text-orange-400 hover:bg-orange-500/10 disabled:opacity-40 transition-colors"
-              >
-                {uploadingPdf ? 'Uploading…' : '↑ Demo Poison PDF'}
-              </button>
-              <button onClick={fetchLogs} className="text-dg-muted hover:text-white transition-colors">
-                <RefreshCw className="w-3 h-3" />
-              </button>
-            </div>
           </div>
-          <div className="flex-1 overflow-hidden p-3">
+
+          {/* ── Upload Panel ── */}
+          <div className="flex-none border-b border-dg-border">
+            <button
+              onClick={() => setUploadPanelOpen((o) => !o)}
+              className="w-full flex items-center justify-between px-4 py-2 text-[11px] font-mono text-dg-muted hover:text-white transition-colors bg-dg-surface/20"
+            >
+              <span className="flex items-center gap-1.5 uppercase tracking-wider">
+                <Database className="w-3 h-3" /> Knowledge Base
+              </span>
+              {uploadPanelOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+
+            {uploadPanelOpen && (
+              <div className="px-3 pb-3 pt-1 space-y-3">
+
+                {/* KB Poisoning (persistent) */}
+                <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/5 p-3 space-y-2">
+                  <div className="text-[10px] font-mono text-yellow-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Database className="w-3 h-3" /> Knowledge Base
+                  </div>
+                  <p className="text-[10px] text-dg-muted leading-relaxed">
+                    Permanently ingest a PDF/TXT into ChromaDB. Every future query will retrieve this doc across all sessions.
+                  </p>
+                  {/* KB target toggle */}
+                  <div className="flex gap-1.5">
+                    {['poisoned', 'clean'].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setV2Mode(m)}
+                        className={cn(
+                          'text-[10px] px-2 py-1 rounded border font-mono transition-colors',
+                          v2Mode === m
+                            ? m === 'poisoned'
+                              ? 'border-yellow-500/60 text-yellow-400 bg-yellow-500/10'
+                              : 'border-dg-clean/60 text-dg-clean bg-dg-clean/10'
+                            : 'border-dg-border text-dg-muted hover:border-dg-text'
+                        )}
+                      >
+                        {m === 'poisoned' ? 'Poisoned' : 'Clean'}
+                      </button>
+                    ))}
+                  </div>
+                  {/* File picker */}
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-dg-border text-dg-muted hover:border-yellow-500/50 hover:text-yellow-400 text-[10px] font-mono transition-colors bg-dg-surface">
+                      <FileText className="w-3 h-3" />
+                      {v2File ? v2File.name : 'Choose file…'}
+                    </span>
+                    <input
+                      ref={v2FileRef}
+                      type="file"
+                      accept=".pdf,.txt"
+                      className="hidden"
+                      onChange={(e) => setV2File(e.target.files[0] || null)}
+                    />
+                  </label>
+                  <button
+                    onClick={handleV2Ingest}
+                    disabled={!v2File || v2Ingesting}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 text-[10px] font-mono transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {v2Ingesting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Database className="w-3 h-3" />}
+                    {v2Ingesting ? 'Ingesting…' : 'Add to Knowledge Base'}
+                  </button>
+                </div>
+
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-hidden p-3 flex flex-col min-h-0">
             <AttackConsole
               lastResult={lastResult}
               logs={logs}

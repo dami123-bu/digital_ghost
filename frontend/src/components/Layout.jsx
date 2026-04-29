@@ -11,7 +11,7 @@ export default function Layout() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-dg-navy">
+    <div className="h-screen flex flex-col bg-dg-navy overflow-hidden">
       <header className="h-14 border-b border-dg-border bg-dg-blue/40 backdrop-blur flex-none flex items-center px-6 gap-6">
         <Link to="/" className="flex items-center gap-2.5">
           <ShieldAlert className="w-5 h-5 text-dg-accent" />

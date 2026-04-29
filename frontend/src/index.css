@@ -8,5 +8,6 @@
   }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-dg-border rounded-full; }
+  ::-webkit-scrollbar-thumb { background: transparent; border-radius: 9999px; }
+  *:hover::-webkit-scrollbar-thumb { background: #1E3050; }
 }

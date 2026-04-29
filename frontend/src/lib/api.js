@@ -32,6 +32,13 @@ export const api = {
   setProvider:      (provider)            => request('/provider', { method: 'POST', body: JSON.stringify({ provider }) }),
   query:            (question, session_id) =>
     request('/query', { method: 'POST', body: JSON.stringify({ question, session_id }) }),
+  queryWithDoc:     (question, session_id, file) => {
+    const fd = new FormData()
+    fd.append('question', question)
+    if (session_id) fd.append('session_id', session_id)
+    fd.append('file', file)
+    return upload('/query/with-doc', fd)
+  },
   getLogs:          ()                    => request('/logs'),
   clearLogs:        ()                    => request('/logs', { method: 'DELETE' }),
   ingest:           (formData)            => upload('/ingest', formData),

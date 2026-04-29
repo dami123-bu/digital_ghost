@@ -34,15 +34,17 @@ from config import (
 )
 
 _COLLECTION_MAP = {
-    "clean":    CHROMA_COLLECTION_CLEAN,
-    "poisoned": CHROMA_COLLECTION_POISONED,
-    "defended": CHROMA_COLLECTION_POISONED,  # defended uses poisoned data, strips injections
+    "clean":        CHROMA_COLLECTION_CLEAN,
+    "poisoned":     CHROMA_COLLECTION_POISONED,
+    "defended":     CHROMA_COLLECTION_POISONED,  # defended uses poisoned data, strips injections
+    "mcp_poisoned": CHROMA_COLLECTION_CLEAN,     # clean RAG for Vector 3 isolation
 }
 
 _UPLOADS_MAP = {
-    "clean":    CHROMA_COLLECTION_UPLOADS_CLEAN,
-    "poisoned": CHROMA_COLLECTION_UPLOADS_POISONED,
-    "defended": CHROMA_COLLECTION_UPLOADS_POISONED,
+    "clean":        CHROMA_COLLECTION_UPLOADS_CLEAN,
+    "poisoned":     CHROMA_COLLECTION_UPLOADS_POISONED,
+    "defended":     CHROMA_COLLECTION_UPLOADS_POISONED,
+    "mcp_poisoned": CHROMA_COLLECTION_UPLOADS_CLEAN,   # clean uploads too
 }
 
 
@@ -208,6 +210,49 @@ def ingest_document(filename: str, text: str, mode: str) -> dict:
         } for n, c in enumerate(chunks)],
     )
     return {"id_prefix": base, "chunks": len(chunks), "collection": _UPLOADS_MAP[mode]}
+
+
+def chunk_document_ephemeral(filename: str, text: str) -> list[dict]:
+    """
+    Chunk a document in memory only — never stored in ChromaDB.
+
+    Returns the same shape as query_docs(): list of {id, text, metadata, distance}.
+    distance is set to 0.0 so ephemeral chunks sort to the top when merged with
+    KB results (direct-attach documents get highest retrieval priority).
+
+    Use this for the /query/with-doc endpoint where the researcher attaches a file
+    to a single query without wanting it persisted to the shared knowledge base.
+    """
+    raw_chunks = [c.strip() for c in text.split("\n\n") if c.strip()]
+    chunks: list[str] = []
+    buf = ""
+    for c in raw_chunks:
+        if len(buf) + len(c) < 1200:
+            buf = (buf + "\n\n" + c).strip()
+        else:
+            if buf:
+                chunks.append(buf)
+            buf = c
+    if buf:
+        chunks.append(buf)
+    if not chunks:
+        chunks = [text]
+
+    base = hashlib.sha256((filename + text[:100]).encode()).hexdigest()[:12]
+    return [
+        {
+            "id": f"ephemeral-{base}-chunk-{n}",
+            "text": chunk,
+            "metadata": {
+                "source": "ephemeral_upload",
+                "filename": filename,
+                "title": filename,
+                "chunk_index": n,
+            },
+            "distance": 0.0,
+        }
+        for n, chunk in enumerate(chunks)
+    ]
 
 
 def query_uploads(query: str, mode: str, k: int = 3) -> list[dict]:

@@ -42,7 +42,7 @@ class IngestResponse(BaseModel):
 
 
 class ModeRequest(BaseModel):
-    mode: Literal["clean", "poisoned", "defended"]
+    mode: Literal["clean", "poisoned", "defended", "mcp_poisoned"]
 
 
 class ModeResponse(BaseModel):

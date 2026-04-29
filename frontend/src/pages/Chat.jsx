@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, Loader2, Sparkles, Paperclip } from 'lucide-react'
+import { Send, Bot, User, Loader2, Sparkles, Paperclip, Database, X } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
 
@@ -18,9 +18,11 @@ export default function Chat() {
   const [sending, setSending]         = useState(false)
   const [uploadStatus, setUploadStatus] = useState(null)  // null | 'uploading' | 'done' | 'error'
   const [uploadMsg, setUploadMsg]     = useState('')
-  const bottomRef   = useRef(null)
-  const textareaRef = useRef(null)
-  const fileInputRef = useRef(null)
+  const [attachedFile, setAttachedFile] = useState(null)  // file attached for ephemeral query
+  const bottomRef    = useRef(null)
+  const textareaRef  = useRef(null)
+  const fileInputRef = useRef(null)   // ephemeral attach (paperclip)
+  const kbFileInputRef = useRef(null) // persistent KB ingest (Add to KB)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -37,10 +39,14 @@ export default function Chat() {
     const text = input.trim()
     if (!text || sending) return
     setSending(true)
-    setMessages((prev) => [...prev, { role: 'user', content: text }])
+    const file = attachedFile
+    setAttachedFile(null)
+    setMessages((prev) => [...prev, { role: 'user', content: text, attachedFile: file?.name }])
     setInput('')
     try {
-      const res = await api.query(text, SESSION_ID)
+      const res = file
+        ? await api.queryWithDoc(text, SESSION_ID, file)
+        : await api.query(text, SESSION_ID)
       setMessages((prev) => [...prev, { role: 'assistant', content: res.answer, meta: res }])
     } catch (err) {
       setMessages((prev) => [...prev, { role: 'assistant', content: `Error: ${err.message}` }])
@@ -49,16 +55,27 @@ export default function Chat() {
     }
   }
 
-  async function handleFileUpload(e) {
+  // Ephemeral attach — file is held in state and sent with the next query only.
+  // It is never stored in ChromaDB.
+  function handleAttachFile(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAttachedFile(file)
+    e.target.value = ''
+  }
+
+  // Persistent KB ingest — file is chunked and stored in ChromaDB immediately.
+  // Every user and future session can retrieve it.
+  async function handleAddToKB(e) {
     const file = e.target.files?.[0]
     if (!file) return
     setUploadStatus('uploading')
-    setUploadMsg(`Uploading "${file.name}"…`)
+    setUploadMsg(`Adding "${file.name}" to knowledge base…`)
     const fd = new FormData()
     fd.append('file', file)
     try {
       const res = await api.ingest(fd)
-      setUploadMsg(`"${res.filename}" — ${res.chunks_stored} chunk(s) added to ${res.mode} KB`)
+      setUploadMsg(`"${res.filename}" — ${res.chunks_stored} chunk(s) added to ${res.mode} KB (persistent)`)
       setUploadStatus('done')
     } catch (err) {
       setUploadMsg(`Upload failed: ${err.message}`)
@@ -112,6 +129,13 @@ export default function Chat() {
                 ? 'bg-dg-accent text-white rounded-tr-sm'
                 : 'bg-dg-surface border border-dg-border text-dg-text rounded-tl-sm'
             )}>
+              {m.role === 'user' && m.attachedFile && (
+                <div className="flex items-center gap-1 text-[10px] font-mono text-white/60 mb-1">
+                  <Paperclip className="w-2.5 h-2.5" />
+                  {m.attachedFile}
+                  <span className="text-white/40 ml-1">(ephemeral)</span>
+                </div>
+              )}
               {m.content}
               {m.role === 'assistant' && m.meta?.turn_count > 1 && (
                 <div className="text-[10px] font-mono text-dg-muted/50 mt-1.5">
@@ -144,37 +168,76 @@ export default function Chat() {
 
       {/* Input */}
       <div className="flex-none space-y-1.5">
-        {/* Upload status bar */}
+        {/* Attached file badge (ephemeral) */}
+        {attachedFile && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border bg-dg-accent/10 border-dg-accent/20 text-dg-accent">
+            <Paperclip className="w-3 h-3 flex-none" />
+            <span className="truncate">{attachedFile.name}</span>
+            <span className="text-dg-accent/50">— attached for this query only</span>
+            <button
+              onClick={() => setAttachedFile(null)}
+              className="ml-auto hover:text-white transition-colors"
+              title="Remove attachment"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
+        {/* KB upload status bar */}
         {uploadStatus && (
           <div className={cn(
             'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border',
             uploadStatus === 'error'
               ? 'bg-red-500/10 border-red-500/20 text-red-400'
               : uploadStatus === 'uploading'
-              ? 'bg-dg-accent/10 border-dg-accent/20 text-dg-accent'
+              ? 'bg-dg-orange/10 border-dg-orange/20 text-dg-orange'
               : 'bg-green-500/10 border-green-500/20 text-green-400'
           )}>
+            <Database className="w-3 h-3 flex-none" />
             {uploadMsg}
           </div>
         )}
 
         <div className="relative rounded-xl border border-dg-border bg-dg-surface focus-within:border-dg-accent/50 transition-colors">
-          {/* Hidden file input */}
+          {/* Hidden file inputs */}
           <input
             ref={fileInputRef}
             type="file"
             accept=".pdf,.txt"
             className="hidden"
-            onChange={handleFileUpload}
+            onChange={handleAttachFile}
           />
-          {/* Upload button inside input bar */}
+          <input
+            ref={kbFileInputRef}
+            type="file"
+            accept=".pdf,.txt"
+            className="hidden"
+            onChange={handleAddToKB}
+          />
+
+          {/* Paperclip — ephemeral attach (this query only, not stored) */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploadStatus === 'uploading'}
-            title="Upload PDF or .txt to knowledge base"
-            className="absolute left-2.5 bottom-2.5 p-1.5 rounded-lg text-dg-muted hover:text-white hover:bg-white/10 disabled:opacity-40 transition-colors"
+            title="Attach file to this query (ephemeral — not stored in KB)"
+            className={cn(
+              'absolute left-2.5 bottom-2.5 p-1.5 rounded-lg transition-colors',
+              attachedFile
+                ? 'text-dg-accent bg-dg-accent/10'
+                : 'text-dg-muted hover:text-white hover:bg-white/10'
+            )}
           >
             <Paperclip className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Database icon — persistent KB ingest (all users, all sessions) */}
+          <button
+            onClick={() => kbFileInputRef.current?.click()}
+            disabled={uploadStatus === 'uploading'}
+            title="Add to knowledge base (persistent — all users and sessions)"
+            className="absolute left-9 bottom-2.5 p-1.5 rounded-lg text-dg-muted hover:text-dg-orange hover:bg-white/10 disabled:opacity-40 transition-colors"
+          >
+            <Database className="w-3.5 h-3.5" />
           </button>
 
           <textarea
@@ -184,7 +247,7 @@ export default function Chat() {
             onKeyDown={onKey}
             placeholder="Ask about compounds, trials, LIMS data…"
             rows={1}
-            className="w-full resize-none bg-transparent px-10 py-3 pr-12 text-sm text-dg-text placeholder-dg-muted focus:outline-none"
+            className="w-full resize-none bg-transparent pl-16 pr-12 py-3 text-sm text-dg-text placeholder-dg-muted focus:outline-none"
           />
           <button
             onClick={handleSend}
