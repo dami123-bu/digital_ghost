@@ -16,7 +16,7 @@ export default function Layout() {
         <Link to="/" className="flex items-center gap-2.5">
           <ShieldAlert className="w-5 h-5 text-dg-accent" />
           <span className="font-semibold text-white text-sm tracking-tight">
-            Digital Ghost
+            PharmaHelp
           </span>
           <span className="text-dg-muted text-xs font-mono">EC521</span>
         </Link>
